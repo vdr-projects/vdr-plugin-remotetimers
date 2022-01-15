@@ -22,6 +22,73 @@
 
 namespace PluginRemoteTimers {
 
+#if APIVERSNUM < 10712
+
+// copy of VDR's cNestedItem / cNestedItemList
+
+class cNestedItem : public cListObject {
+private:
+  char *text;
+  cList<cNestedItem> *subItems;
+public:
+  cNestedItem(const char *Text, bool WithSubItems = false);
+  virtual ~cNestedItem();
+  virtual int Compare(const cListObject &ListObject) const;
+  const char *Text(void) const { return text; }
+  cList<cNestedItem> *SubItems(void) { return subItems; }
+  void AddSubItem(cNestedItem *Item);
+  void SetText(const char *Text);
+  void SetSubItems(bool On);
+  };
+
+class cNestedItemList : public cList<cNestedItem> {
+private:
+  char *fileName;
+  bool Parse(FILE *f, cList<cNestedItem> *List, int &Line);
+  bool Write(FILE *f, cList<cNestedItem> *List, int Indent = 0);
+public:
+  cNestedItemList(void);
+  virtual ~cNestedItemList();
+  void Clear(void);
+  bool Load(const char *FileName);
+  bool Save(void);
+  };
+
+// copy of VDR's cMenuFolder
+
+class cMenuEditFolder;
+
+class cMenuFolder : public cOsdMenu {
+private:
+  // cOsdMenu::Title() and cOsdMenu::SubMenu() missing in < 10712
+  cString title;
+  cMenuFolder *subMenuFolder;
+  cMenuEditFolder *subMenuEditFolder;
+
+  cNestedItemList *nestedItemList;
+  cList<cNestedItem> *list;
+  cString dir;
+  cOsdItem *firstFolder;
+  bool editing;
+  void SetHelpKeys(void);
+  void Set(const char *CurrentFolder = NULL);
+  void DescendPath(const char *Path);
+  eOSState SetFolder(void);
+  eOSState Select(void);
+  eOSState New(void);
+  eOSState Delete(void);
+  eOSState Edit(void);
+  cMenuFolder(const char *Title, cList<cNestedItem> *List, cNestedItemList *NestedItemList, const char *Dir, const char *Path = NULL);
+public:
+  cMenuFolder(const char *Title, cNestedItemList *NestedItemList, const char *Path = NULL);
+  cString GetFolder(void);
+  virtual eOSState ProcessKey(eKeys Key);
+  };
+
+extern cNestedItemList Folders;
+
+#endif
+
 class cMenuTimerItem : public cOsdItem {
 private:
   cTimer *timer;

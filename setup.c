@@ -15,10 +15,10 @@
 cRemoteTimersSetup RemoteTimersSetup;
 
 char* copyFilename(char *dest, const char *src, size_t n) {
-	while (*src == '~')
+	while (*src == FOLDERDELIMCHAR)
 		src++;
 	strn0cpy(dest, src, n);
-	for (int i = strlen(dest) - 1; i >= 0 && dest[i] == '~'; i--)
+	for (int i = strlen(dest) - 1; i >= 0 && dest[i] == FOLDERDELIMCHAR; i--)
 		dest[i] = '\0';
 	return dest;
 }

@@ -264,16 +264,18 @@ which user ID filter currently applies.
 When editing a timer two additional menu items will show up: The location
 of the timer (local or remote) and the user IDs it belongs to. Changing
 the location moves the timer from the local to the remote VDR or vice versa.
-Note that you cannot move a running timer. It has to be stopped first.
+Note that you cannot move a running timer. It has to be stopped first. With
+"Red" you can select a folder for the recording.
 
 5.4. Recordings menu:
 ---------------------
 As in the timers menu, hit the number keys to change the user ID filter.
 The "red" button will neither start to replay a recording nor will it open
 the recording commands menu. Instead it allows you to edit the recording.
-You can change the priority, lifetime, user IDs and the name. "Red" gives
-you the recording commands, "green" starts the cutter on the recording. For
-a network mounted recording, the cutter is started on the remote VDR.
+You can change the priority, lifetime, user IDs and the name. "Red" lets
+you change the folder, "green" starts the cutter on the recording and
+"Yellow" gives you the recording commands. For a network mounted recording,
+the cutter is started on the remote VDR.
 
 In contrast to VDR's original recordings menu, the disk space information
 in the title bar always corresponds to the filesystem of the currently

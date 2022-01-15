@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdrdev@schmirler.de>\n"
-"POT-Creation-Date: 2009-02-19 12:45+0100\n"
-"PO-Revision-Date: 2009-02-21 19:08+0100\n"
+"POT-Creation-Date: 2010-02-14 17:48+0100\n"
+"PO-Revision-Date: 2010-02-22 00:04+0100\n"
 "Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
 "MIME-Version: 1.0\n"
@@ -17,6 +17,31 @@ msgstr ""
 
 msgid "Remote timers not available"
 msgstr "Timer remoti non disponibili"
+
+msgid "Edit folder"
+msgstr "Modifica cartella"
+
+msgid "New folder"
+msgstr "Nuova cartella"
+
+msgid "Sub folder"
+msgstr "Sottocartella"
+
+msgid "Folder name already exists!"
+msgstr "Nome cartella già esistente!"
+
+#, c-format
+msgid "Folder name must not contain '%c'!"
+msgstr "Il nome cartella non può contenere '%c'!"
+
+msgid "Button$Select"
+msgstr "Seleziona"
+
+msgid "Delete folder and all sub folders?"
+msgstr "Eliminare la cartella e tutte le sottocartelle?"
+
+msgid "Delete folder?"
+msgstr "Eliminare la cartella?"
 
 msgid "Location"
 msgstr "Posizione"
@@ -30,8 +55,14 @@ msgstr "remoto"
 msgid "User ID"
 msgstr "ID utente"
 
+msgid "Button$Folder"
+msgstr "Cartella"
+
 msgid "Timer is recording - can't move it to server"
 msgstr "Timer in registrazione - impossibile spostarlo sul server"
+
+msgid "Select folder"
+msgstr "Seleziona cartella"
 
 #. TRANSLATORS: Indicator for (R)emote or (L)ocal timer in timers list
 msgid "RL"
@@ -157,5 +188,3 @@ msgstr "Errore inatteso - impossibile avviare taglio remoto"
 
 msgid "Lost SVDRP connection - unable to start remote cutter"
 msgstr "Persa connessione SVDRP - impossibile avviare taglio remoto"
-
-

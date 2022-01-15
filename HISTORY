@@ -1,6 +1,16 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
+2010-02-22: Version 0.1.3
+
+- API changes for VDR 1.7.12+
+- Backported VDR 1.7.12 folders.conf. "Edit timer" and "Edit recording"
+  menus feature folder selection regardless of VDR version.
+- Updated Italian translations (thanks to Diego Pierotto)
+- Dropped the now obsolete cMenuEditPathItem
+- Updated the menu parts copied from VDR to 1.7.12
+- Silenced warning about suggested parentheses
+
 2009-11-04: Version 0.1.2
 
 - When navigating to subdirectories in the Recordings menu, show diskspace

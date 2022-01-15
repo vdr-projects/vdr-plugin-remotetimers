@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdrdev@schmirler.de>\n"
-"POT-Creation-Date: 2009-02-19 12:45+0100\n"
+"POT-Creation-Date: 2010-02-14 17:48+0100\n"
 "PO-Revision-Date: 2008-02-20 11:48+0100\n"
 "Last-Translator: Frank Schmirler <vdrdev@schmirler.de>\n"
 "Language-Team: <vdr@linuxtv.org>\n"
@@ -17,6 +17,31 @@ msgstr ""
 
 msgid "Remote timers not available"
 msgstr "Timer des Servers nicht verfügbar"
+
+msgid "Edit folder"
+msgstr "Verzeichnis editieren"
+
+msgid "New folder"
+msgstr "Neues Verzeichnis"
+
+msgid "Sub folder"
+msgstr "Unterverzeichnis"
+
+msgid "Folder name already exists!"
+msgstr "Verzeichnisname existiert bereits!"
+
+#, c-format
+msgid "Folder name must not contain '%c'!"
+msgstr "Verzeichnisname darf kein '%c' enthalten!"
+
+msgid "Button$Select"
+msgstr "Auswählen"
+
+msgid "Delete folder and all sub folders?"
+msgstr "Verzeichnis und alle Unterverzeichnisse löschen?"
+
+msgid "Delete folder?"
+msgstr "Verzeichnis löschen?"
 
 msgid "Location"
 msgstr "Aufnahmeort"
@@ -30,8 +55,14 @@ msgstr "Server"
 msgid "User ID"
 msgstr "Benutzer-ID"
 
+msgid "Button$Folder"
+msgstr "Verzeichnis"
+
 msgid "Timer is recording - can't move it to server"
 msgstr "Timer nimmt gerade auf - auf Server verschieben nicht möglich"
+
+msgid "Select folder"
+msgstr "Verzeichnis wählen"
 
 #. TRANSLATORS: Indicator for (R)emote or (L)ocal timer in timers list
 msgid "RL"
