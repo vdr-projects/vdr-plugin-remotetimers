@@ -8,6 +8,8 @@ VDR Plugin 'remotetimers' Revision History
   folder ' ' is assumed when renaming a recording and the name ends with
   the folder delimiter character
 - Don't rename a recording if the user completely wiped out the name
+- Added service interface for operating on timers
+- Updated MainMenuHooks patch to v1.0.1
 
 2010-02-22: Version 0.1.3
 

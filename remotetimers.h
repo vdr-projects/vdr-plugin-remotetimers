@@ -32,9 +32,13 @@ struct RemoteTimers_GetMatch_v1_0 {
 	bool		isRemote;
 };
 
+struct RemoteTimers_ForEach_v1_0 {
+//in+out
+	bool		remote;
+	cTimer		*timer;
+};
+
 struct RemoteTimers_Timer_v1_0 {
-//in
-        const cEvent    *event;
 //in+out
 	cTimer		*timer;
 //out

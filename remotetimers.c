@@ -15,7 +15,7 @@
 #include "watcher.h"
 #include "i18n.h"
 
-static const char *VERSION        = "0.1.4-alpha2";
+static const char *VERSION        = "0.1.4-alpha3";
 static const char *DESCRIPTION    = trNOOP("Edit timers on remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote Timers");
 
@@ -202,6 +202,14 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
         }
         svdrp->Disconnect();
         return **errorMsg == NULL;
+     }
+     return true;
+  }
+
+  if (strcmp(Id, "RemoteTimers::ForEach-v1.0") == 0) {
+     if (Data) {
+        cRemoteTimer *t = *(cRemoteTimer **) Data;
+	t = t ? RemoteTimers.First() : RemoteTimers.Next(t);
      }
      return true;
   }
