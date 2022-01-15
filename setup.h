@@ -40,6 +40,9 @@ struct cRemoteTimersSetup {
 	int userFilterSchedule;
 	int userFilterTimers;
 	int userFilterRecordings;
+	int skinSchedule;
+	int skinTimers;
+	int skinRecordings;
 	int defaultUser;
 	int addToRemote;
 	int remotePause;

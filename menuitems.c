@@ -21,9 +21,7 @@
 
 #include "menuitems.h"
 #include <ctype.h>
-#if VDRVERSNUM >10503
 #include <wctype.h>
-#endif
 #include <stdlib.h>
 #include <vdr/remote.h>
 

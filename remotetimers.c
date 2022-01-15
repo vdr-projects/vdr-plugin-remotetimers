@@ -29,7 +29,7 @@
 #include "watcher.h"
 #include "i18n.h"
 
-static const char *VERSION        = "0.1.7";
+static const char *VERSION        = "1.0.0";
 static const char *DESCRIPTION    = trNOOP("Edit timers on remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote Timers");
 
@@ -82,18 +82,12 @@ bool cPluginRemotetimers::ProcessArgs(int argc, char *argv[])
 
 bool cPluginRemotetimers::Initialize(void)
 {
-#if APIVERSNUM < 10712
-  PluginRemoteTimers::Folders.Load(AddDirectory(AddDirectory(ConfigDirectory(), ".."), "folders.conf"));
-#endif
   return true;
 }
 
 bool cPluginRemotetimers::Start(void)
 {
   // Start any background activities the plugin shall perform.
-#if VDRVERSNUM < 10507
-  RegisterI18n(Phrases);
-#endif
   if (RemoteTimersSetup.watchUpdate)
      cUpdateWatcher::GetInstance()->Start();
   return true;
@@ -241,7 +235,9 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
   if (strcmp(Id, "RemoteTimers::GetMatch-v1.0") == 0) {
      if (Data) {
         RemoteTimers_GetMatch_v1_0 *match = (RemoteTimers_GetMatch_v1_0 *) Data;
-        match->timer = PluginRemoteTimers::GetBestMatch(match->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &match->timerMatch, &match->timerType, &match->isRemote);
+        eTimerMatch timerMatch = tmNone;
+        match->timer = PluginRemoteTimers::GetBestMatch(match->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &timerMatch, &match->timerType, &match->isRemote);
+        match->timerMatch = timerMatch;
      }
      return true;
   }
@@ -282,7 +278,7 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
      if (Data) {
         RemoteTimers_Event_v1_0 *data = (RemoteTimers_Event_v1_0 *) Data;
         cTimer *t = NULL;
-        int tm = tmNone;
+        eTimerMatch tm = tmNone;
         bool isRemote = false;
 
         // check for timer with user filter
@@ -435,6 +431,19 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
         }
         // should not happen
         esyslog("RemoteTimers::DelTimer service: timer not found");
+     }
+     return true;
+  }
+
+  if (strcmp(Id, "RemoteTimers::Menu-v1.0") == 0) {
+     if (Data) {
+        RemoteTimers_Menu_v1_0 *data = (RemoteTimers_Menu_v1_0 *) Data;
+        if (data->state == osTimers)
+           data->menu = new ::PluginRemoteTimers::cMenuTimers(data->serverIp, data->serverPort);
+        else if (data->state == osSchedule)
+           data->menu = new ::PluginRemoteTimers::cMenuSchedule(data->serverIp, data->serverPort);
+        else
+           data->menu = NULL;
      }
      return true;
   }

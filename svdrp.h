@@ -23,7 +23,7 @@
 #define _REMOTETIMERS_SVDRP__H
 
 #include <stdlib.h>
-#include "../svdrpservice/svdrpservice.h"
+#include "svdrpservice.h"
 #include <vdr/tools.h>
 #include <vdr/plugin.h>
 
@@ -40,7 +40,7 @@ class cSvdrp {
 
 		cSvdrp(cPlugin *Service);
 		~cSvdrp();
-		bool Connect();
+		bool Connect(const char* ServerIp = NULL, unsigned short ServerPort = 0);
 		void Disconnect();
 		bool Offline() { return conn.handle == -1; }
 		unsigned short Send(SvdrpCommand_v1_0 *Cmd);

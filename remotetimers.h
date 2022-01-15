@@ -1,7 +1,7 @@
 /*
  * remotetimers.h: Public interface of the plugin's services
  *
- * Copyright (C) 2008-2011 Frank Schmirler <vdr@schmirler.de>
+ * Copyright (C) 2008-2013 Frank Schmirler <vdr@schmirler.de>
  *
  * This file is part of VDR Plugin remotetimers.
  *
@@ -24,10 +24,9 @@
 #ifndef _SERVICE__H
 #define _SERVICE__H
 
-#ifndef __TIMERS_H
-#include <vdr/timer.h>
+#include <vdr/timers.h>
 #include <vdr/epg.h>
-#endif
+#include <vdr/osdbase.h>
 
 /*
  * If the Data argument is NULL, all service calls return true.
@@ -138,4 +137,18 @@ struct RemoteTimers_Timer_v1_0 {
 	cString		errorMsg;
 };
 
+/*
+ * RemoteTimers::Menu-v1.0
+ * Depending on the state parameter, open the Timers or Schedule menu.
+ * In case of an error, menu is NULL.
+ * Data points to a RemoteTimers_Menu_v1_0 struct.
+ */
+struct RemoteTimers_Menu_v1_0 {
+//in
+	const char	*serverIp;
+	unsigned short	serverPort;
+	eOSState	state;
+//out
+	cOsdMenu	*menu;
+};
 #endif //_SERVICE__H

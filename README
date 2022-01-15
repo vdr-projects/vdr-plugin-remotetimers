@@ -42,7 +42,7 @@ Straightforward:
 - tar xzf vdr-remotetimers-<VERSION>.tgz
 - ln -sf remotetimers-<VERSION> remotetimers
 
-If you didn't do that already (otherwise svdrpservice.h is missing):
+If you didn't do that already:
 - tar xzf vdr-svdrpservice-<VERSION>.tgz
 - ln -sf svdrpservice-<VERSION> svdrpservice
 
@@ -55,10 +55,7 @@ work just fine without them, but add support for some additional features:
 - MainMenuHooks: replace the VDR menus "Schedule", "Timers" and "Recordings"
   with the corresponding plugin menus.
 - remote_instant_recordings: redirects instant recordings to the server VDR
-- video_on_networkshare: fixes a bug in VDR < 1.7.10. Apply if your local
-  video directory and at least one of its subdirectories are network mounts
-  of different shares. Without the patch the calculated amount of free
-  diskspace will not always be accurate.
+- skinlcars: show remote timers in mainmenu
 
 A detailed description of the patches and instructions how to apply them can
 be found in the patch files.
@@ -120,17 +117,6 @@ same channel numbers for corresponding DVB-T/DVB-S channels.
 - Hide mainmenu entry
 Should be obvious ;-)
 
-- Replace mainmenu "Schedule"
-When enabled, each call to the local VDR Schedule menu will give you
-the remotetimers Schedule menu instead. Only available if MainMenuHooks
-patch has been applied to VDR before compiling remotetimers.
-
-- Replace mainmenu "Timers"
-Dito for Timers menu.
-
-- Replace mainmenu "Recordings"
-Dito for Recordings menu.
-
 *** Defaults for new timers ***
 
 - Location
@@ -154,28 +140,70 @@ value "0" to indicate a timer which is always visible, i.e. belongs to
 everyone. If you select "Resume ID", remotetimers will assign the ID of
 the user who is current at the moment the timer is created.
 
-*** Settings for menu ***
+*** Settings for menu "Schedule" ***
 
-- Binding of Ok/Blue in "What's on" menus
-Vanilla VDR shows the EPG details with "Ok" and switches to the selected
-channel with "Blue". Swap it if you like.
+- Replace mainmenu
+When enabled, each call to the local VDR Schedule menu will give you
+the remotetimers Schedule menu instead. Only available if MainMenuHooks
+patch has been applied to VDR before compiling remotetimers.
+
+- List style
+Some skins display events in a more sophisticated way. With the default
+"Plugin" you will get a simple list. Select "Skin" if you want the skin
+to draw the list. The downside is that skins are not aware of multiuser,
+so it will display events with normal and private timers the same way
+(see "User ID filter" below).
 
 - Show progress bar in menu "Schedule"
 Adds progress bars to the "What's on now?" menu.
 
-- User ID filter in menu "Schedule"
+- Key binding of Ok/Blue
+Vanilla VDR shows the EPG details with "Ok" and switches to the selected
+channel with "Blue". Swap it if you like.
+
+- User ID filter
 If set to "0", all timers will be shown. Private timers (as opposed to
 timers of user "0") are indicated with the character "P". If set to a
 specific ID, only timers of user "0" and the selected ID will be marked.
 Select "Resume ID" to filter by the current user.
 
-- User ID filter in menu "Timers"
+*** Settings for menu "Timers" ***
+
+- Replace mainmenu
+When enabled, each call to the local VDR Timers menu will give you
+the remotetimers Timers menu instead. Only available if MainMenuHooks
+patch has been applied to VDR before compiling remotetimers.
+
+- List style
+Some skins display timers in a more sophisticated way. With the default
+"Plugin" you will get a simple list. Select "Skin" if you want the skin
+to draw the list. The downside is that skins will display local and
+remote timers the same way.
+
+- User ID filter
 If set to "0", all timers will be listed. When set to a specific ID, only
 timers of this specific user and timers of user "0" will be visible. Select
 "Resume ID" to filter by the current user.
 
-- User ID filter in menu "Recordings"
-Dito for recordings. A recording inherits the user IDs of the timer.
+*** Settings for menu "Recordings" ***
+
+- Replace mainmenu
+When enabled, each call to the local VDR Recordings menu will give you
+the remotetimers Recordings menu instead. Only available if MainMenuHooks
+patch has been applied to VDR before compiling remotetimers.
+
+- List style
+Some skins display recordings in a more sophisticated way. With the
+default "Plugin" you will get a simple list. Select "Skin" if you want
+the skin to draw the list. With some skins you will get two free disk
+space indications in the title bar. Remotetimers shows it for the
+current partition, VDR for the main video directory.
+
+- User ID filter
+If set to "0", all recordings will be listed. When set to a specific ID,
+only recordings of this specific user and recordings of user "0" will be
+visible. Select "Resume ID" to filter by the current user. A recording
+inherits the user IDs of the timer.
 
 - Move recording bandwidth limit (Mbit/s)
 If you rename a recording and the new name points to a different filesystem,
@@ -284,6 +312,9 @@ Note that you cannot move a running timer. It has to be stopped first. With
 5.4. Recordings menu:
 ---------------------
 As in the timers menu, hit the number keys to change the user ID filter.
+In VDR you can change the sort order of recordings with "0". In remotetimers
+hit the current user ID.
+
 The "red" button will neither start to replay a recording nor will it open
 the recording commands menu. Instead it allows you to edit the recording.
 You can change the priority, lifetime, user IDs and the name. "Red" lets
@@ -301,19 +332,12 @@ In contrast to VDR's original recordings menu, the disk space information
 in the title bar always corresponds to the filesystem of the currently
 selected directory. So if there are subdirectories in your video directory
 which live on a different partition or on a network share, the disk space
-information changes when descending into this directory (requires at least
-VDR 1.5.15). Unfortunately there's a problem with the way VDR tests for
-directories on different filesystems. It will fail, if the base video
-directory itself is a network mount (e.g. NFS or CIFS). From the patches
-subdirectory, apply vdr-1.5.15-1.7.9-video_on_networkshare.diff to fix
-this. The patch is not required if the video directory is on a local
-harddrive and subdirectories are network mounts or if VDR is at least
-version 1.7.10.
+information changes when descending into this directory.
 
 The titles of the "Recording info" and "Edit recording" menus include
-the recording's size and length. Since VDR 1.7.28 it will also display the
-remaining disk space in minutes based on size and length of the currently
-selected recording.
+the recording's size and length. It will also display the remaining disk
+space in minutes based on size and length of the currently selected
+recording.
 
 6. Credits:
 -----------

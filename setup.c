@@ -49,6 +49,9 @@ cRemoteTimersSetup::cRemoteTimersSetup() {
 	userFilterSchedule = 0;
 	userFilterTimers = 0;
 	userFilterRecordings = 0;
+	skinSchedule = 0;
+	skinTimers = 0;
+	skinRecordings = 0;
 	defaultUser = 0;
 	addToRemote = 1;
 	remotePause = 0;
@@ -71,6 +74,9 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	userFilterSchedule = Setup.userFilterSchedule;
 	userFilterTimers = Setup.userFilterTimers;
 	userFilterRecordings = Setup.userFilterRecordings;
+	skinSchedule = Setup.skinSchedule;
+	skinTimers = Setup.skinTimers;
+	skinRecordings = Setup.skinRecordings;
 	defaultUser = Setup.defaultUser;
 	addToRemote = Setup.addToRemote;
 	remotePause = Setup.remotePause;
@@ -106,6 +112,12 @@ bool cRemoteTimersSetup::Parse(const char *Name, const char *Value) {
 		userFilterTimers = atoi(Value);
 	else if (!strcasecmp(Name, "UserFilterRecordings"))
 		userFilterRecordings = atoi(Value);
+	else if (!strcasecmp(Name, "SkinSchedule"))
+		skinSchedule = atoi(Value);
+	else if (!strcasecmp(Name, "SkinTimers"))
+		skinTimers = atoi(Value);
+	else if (!strcasecmp(Name, "SkinRecordings"))
+		skinRecordings = atoi(Value);
 	else if (!strcasecmp(Name, "DefaultUser"))
 		defaultUser = PluginRemoteTimers::cMenuEditUserItem::Parse(Value);
 	else if (!strcasecmp(Name, "AddToRemote"))
@@ -138,6 +150,9 @@ void cRemoteTimersMenuSetup::Store() {
 	SetupStore("UserFilterSchedule", setupTmp.userFilterSchedule);
 	SetupStore("UserFilterTimers", setupTmp.userFilterTimers);
 	SetupStore("UserFilterRecordings", setupTmp.userFilterRecordings);
+	SetupStore("SkinSchedule", setupTmp.skinSchedule);
+	SetupStore("SkinTimers", setupTmp.skinTimers);
+	SetupStore("SkinRecordings", setupTmp.skinRecordings);
 	SetupStore("DefaultUser", PluginRemoteTimers::cMenuEditUserItem::ToString(setupTmp.defaultUser));
 	SetupStore("AddToRemote", setupTmp.addToRemote);
 	SetupStore("RemotePause", setupTmp.remotePause);
@@ -174,11 +189,6 @@ void cRemoteTimersMenuSetup::Set() {
 	Add(new cMenuEditIntItem(trREMOTETIMERS("Server port"), &setupTmp.serverPort, 0, 65535, trREMOTETIMERS("from svdrpservice")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Map channels using"), &setupTmp.useChannelId, trREMOTETIMERS("channel number"), trREMOTETIMERS("channel ID")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Hide mainmenu entry"), &setupTmp.hideMainMenuEntry));
-#ifdef MAINMENUHOOKSVERSNUM
-	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Replace mainmenu \"%s\""), tr("Schedule")), &setupTmp.replaceSchedule));
-	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Replace mainmenu \"%s\""), tr("Timers")), &setupTmp.replaceTimers));
-	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Replace mainmenu \"%s\""), tr("Recordings")), &setupTmp.replaceRecordings));
-#endif
 	
 	Add(new cOsdItem(trREMOTETIMERS("Defaults for new timers"), osUnknown, false));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Location"), &setupTmp.addToRemote, trREMOTETIMERS("local"), trREMOTETIMERS("remote")));
@@ -188,12 +198,28 @@ void cRemoteTimersMenuSetup::Set() {
 #endif
 	Add(new PluginRemoteTimers::cMenuEditUserItem(trREMOTETIMERS("User ID"), &setupTmp.defaultUser, tr("Setup.Replay$Resume ID")));
 	
-	Add(new cOsdItem(trREMOTETIMERS("Settings for menu"), osUnknown, false));
-	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Binding of %s/%s in \"What's on\" menus"), tr("Key$Ok"), tr("Key$Blue")), &setupTmp.swapOkBlue, swapOkBlueFalse, swapOkBlueTrue));
-	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Show progress bar in menu \"%s\""), tr("Schedule")), &setupTmp.showProgressBar));
-	Add(new cMenuEditIntItem(cString::sprintf(trREMOTETIMERS("User ID filter in menu \"%s\""), tr("Schedule")), &setupTmp.userFilterSchedule, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
-	Add(new cMenuEditIntItem(cString::sprintf(trREMOTETIMERS("User ID filter in menu \"%s\""), tr("Timers")), &setupTmp.userFilterTimers, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
-	Add(new cMenuEditIntItem(cString::sprintf(trREMOTETIMERS("User ID filter in menu \"%s\""), tr("Recordings")), &setupTmp.userFilterRecordings, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
+	Add(new cOsdItem(cString::sprintf(trREMOTETIMERS("Settings for menu \"%s\""), tr("Schedule")), osUnknown, false));
+#ifdef MAINMENUHOOKSVERSNUM
+	Add(new cMenuEditBoolItem(trREMOTETIMERS("Replace mainmenu"), &setupTmp.replaceSchedule));
+#endif
+	Add(new cMenuEditBoolItem(trREMOTETIMERS("List style"), &setupTmp.skinSchedule, tr("Plugin"), tr("Setup.OSD$Skin")));
+	Add(new cMenuEditBoolItem(trREMOTETIMERS("Show progress bar"), &setupTmp.showProgressBar));
+	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Key binding of %s/%s"), tr("Key$Ok"), tr("Key$Blue")), &setupTmp.swapOkBlue, swapOkBlueFalse, swapOkBlueTrue));
+	Add(new cMenuEditIntItem(trREMOTETIMERS("User ID filter"), &setupTmp.userFilterSchedule, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
+
+	Add(new cOsdItem(cString::sprintf(trREMOTETIMERS("Settings for menu \"%s\""), tr("Timers")), osUnknown, false));
+#ifdef MAINMENUHOOKSVERSNUM
+	Add(new cMenuEditBoolItem(trREMOTETIMERS("Replace mainmenu"), &setupTmp.replaceTimers));
+#endif
+	Add(new cMenuEditBoolItem(trREMOTETIMERS("List style"), &setupTmp.skinTimers, tr("Plugin"), tr("Setup.OSD$Skin")));
+	Add(new cMenuEditIntItem(trREMOTETIMERS("User ID filter"), &setupTmp.userFilterTimers, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
+
+	Add(new cOsdItem(cString::sprintf(trREMOTETIMERS("Settings for menu \"%s\""), tr("Recordings")), osUnknown, false));
+#ifdef MAINMENUHOOKSVERSNUM
+	Add(new cMenuEditBoolItem(trREMOTETIMERS("Replace mainmenu"), &setupTmp.replaceRecordings));
+#endif
+	Add(new cMenuEditBoolItem(trREMOTETIMERS("List style"), &setupTmp.skinRecordings, tr("Plugin"), tr("Setup.OSD$Skin")));
+	Add(new cMenuEditIntItem(trREMOTETIMERS("User ID filter"), &setupTmp.userFilterRecordings, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
 	Add(new cMenuEditIntItem(trREMOTETIMERS("Move recording bandwidth limit (Mbit/s)"), &setupTmp.moveBandwidth, 0, INT_MAX, trREMOTETIMERS("unlimited")));
 
 	Add(new cOsdItem(trREMOTETIMERS("Remote recordings"), osUnknown, false));

@@ -50,15 +50,17 @@ cSvdrp::~cSvdrp() {
 		service->Service("SvdrpConnection-v1.0", &conn);
 }
 
-bool cSvdrp::Connect() {
+bool cSvdrp::Connect(const char* ServerIp, unsigned short ServerPort) {
 	refcount++;
 	if (!service)
 		esyslog("remotetimers: Plugin svdrpservice not available.");
 	else if (conn.handle < 0) {
-		conn.serverIp = RemoteTimersSetup.serverIp;
-		conn.serverPort = RemoteTimersSetup.serverPort;
+		conn.serverIp = (ServerIp && *ServerIp) ? ServerIp : RemoteTimersSetup.serverIp;
+		conn.serverPort = ServerPort != 0 ? ServerPort : RemoteTimersSetup.serverPort;
 		conn.shared = true;
 		service->Service("SvdrpConnection-v1.0", &conn);
+		if (conn.handle < 0)
+			RemoteTimers.Clear();
 	}
 	return conn.handle >= 0;
 }

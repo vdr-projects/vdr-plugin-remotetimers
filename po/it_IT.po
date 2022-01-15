@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdrdev@schmirler.de>\n"
-"POT-Creation-Date: 2012-06-07 01:07+0200\n"
+"POT-Creation-Date: 2013-04-13 23:46+0200\n"
 "PO-Revision-Date: 2012-06-07 20:30+0100\n"
 "Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
@@ -15,31 +15,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-15\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-msgid "Edit folder"
-msgstr "Modifica cartella"
-
-msgid "New folder"
-msgstr "Nuova cartella"
-
-msgid "Sub folder"
-msgstr "Sottocartella"
-
-msgid "Folder name already exists!"
-msgstr "Nome cartella già esistente!"
-
-#, c-format
-msgid "Folder name must not contain '%c'!"
-msgstr "Il nome cartella non può contenere '%c'!"
-
-msgid "Button$Select"
-msgstr "Seleziona"
-
-msgid "Delete folder and all sub folders?"
-msgstr "Eliminare la cartella e tutte le sottocartelle?"
-
-msgid "Delete folder?"
-msgstr "Eliminare la cartella?"
 
 msgid "Location"
 msgstr "Posizione"
@@ -53,14 +28,8 @@ msgstr "remoto"
 msgid "User ID"
 msgstr "ID utente"
 
-msgid "Button$Folder"
-msgstr "Cartella"
-
 msgid "Timer is recording - can't move it to server"
 msgstr "Timer in registrazione - impossibile spostarlo sul server"
-
-msgid "Select folder"
-msgstr "Seleziona cartella"
 
 #. TRANSLATORS: Indicator for (R)emote or (L)ocal timer in timers list
 msgid "RL"
@@ -95,8 +64,14 @@ msgstr "Impossibile rinominare registrazione"
 msgid "Move to other filesystem in background?"
 msgstr "Spostare verso un altro filesystem in sottofondo?"
 
+msgid "Button$Folder"
+msgstr "Cartella"
+
 msgid "Cut"
 msgstr "Taglia"
+
+msgid "Select folder"
+msgstr "Seleziona cartella"
 
 #. TRANSLATORS: Button displayed instead of "Delete" when there are other users who didn't watch the recording yet
 msgid "Release"
@@ -104,6 +79,9 @@ msgstr "Rilascia"
 
 msgid "Abort moving recording"
 msgstr "Spostamento registrazione annullato"
+
+msgid "Remote timers not available"
+msgstr "Timer remoti non disponibili"
 
 msgid "Finished moving recording"
 msgstr "Spostamento registrazione completato"
@@ -144,10 +122,6 @@ msgstr "ID canale"
 msgid "Hide mainmenu entry"
 msgstr "Nascondi voce menu principale"
 
-#, c-format
-msgid "Replace mainmenu \"%s\""
-msgstr "Sostituisci \"%s\" menu principale"
-
 msgid "Defaults for new timers"
 msgstr "Valori predefiniti per i nuovi timer"
 
@@ -157,20 +131,25 @@ msgstr "Registrazioni immediate"
 msgid "Pause recordings"
 msgstr "Pausa registrazioni"
 
-msgid "Settings for menu"
-msgstr "Impostazioni menu"
+#, c-format
+msgid "Settings for menu \"%s\""
+msgstr "Impostazioni \"%s\" menu"
+
+msgid "Replace mainmenu"
+msgstr "Sostituisci menu principale"
+
+msgid "List style"
+msgstr ""
+
+msgid "Show progress bar"
+msgstr "Mostra barra avanzamento"
 
 #, c-format
-msgid "Binding of %s/%s in \"What's on\" menus"
-msgstr "Associazione %s/%s nel menu \"Adesso\""
+msgid "Key binding of %s/%s"
+msgstr "Associazione %s/%s"
 
-#, c-format
-msgid "Show progress bar in menu \"%s\""
-msgstr "Mostra barra avanzamento nel menu \"%s\""
-
-#, c-format
-msgid "User ID filter in menu \"%s\""
-msgstr "Filtra per ID utente nel menu \"%s\""
+msgid "User ID filter"
+msgstr "Filtra per ID utente"
 
 msgid "Move recording bandwidth limit (Mbit/s)"
 msgstr "Limite banda spostamento registrazione (Mbit/s)"
@@ -220,6 +199,26 @@ msgstr "Errore inatteso - impossibile avviare taglio remoto"
 msgid "Lost SVDRP connection - unable to start remote cutter"
 msgstr "Persa connessione SVDRP - impossibile avviare taglio remoto"
 
-msgid "Remote timers not available"
-msgstr "Timer remoti non disponibili"
+#~ msgid "Edit folder"
+#~ msgstr "Modifica cartella"
 
+#~ msgid "New folder"
+#~ msgstr "Nuova cartella"
+
+#~ msgid "Sub folder"
+#~ msgstr "Sottocartella"
+
+#~ msgid "Folder name already exists!"
+#~ msgstr "Nome cartella già esistente!"
+
+#~ msgid "Folder name must not contain '%c'!"
+#~ msgstr "Il nome cartella non può contenere '%c'!"
+
+#~ msgid "Button$Select"
+#~ msgstr "Seleziona"
+
+#~ msgid "Delete folder and all sub folders?"
+#~ msgstr "Eliminare la cartella e tutte le sottocartelle?"
+
+#~ msgid "Delete folder?"
+#~ msgstr "Eliminare la cartella?"

@@ -1,6 +1,26 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
+2012-06-27: Version 1.0.0
+
+- Updated the menu parts copied from VDR to 2.0.2
+- Added service call to open schedule or timers menu
+- Updated Makefile for VDR 1.7.36 and dropped compatibility with older VDR
+  versions
+- Updated the menu parts copied from VDR to 2.0.1
+- Updated Slovak translations (thanks to Milan Hrala)
+- Included a copy of svdrpservice.h
+- Updated skin LCARS patch for 1.7.29 and above
+- New setup options to control if the plugin's schedule, timers and recordings
+  menus should indicate the correct menu category (since VDR 1.7.28) and call
+  SetItemEvent/Timer/Recording (since VDR 1.7.34). Some skins will then use
+  their own way to display the item. However the skin is not aware of multiuser
+  or local and remote timers. So it will display all items the same way (thanks
+  to seahawk1986@vdrportal for tuning and debugging this for skinnopacity).
+- Set menu category of main menu to mcMain (thanks to seahawk1986@vdrportal)
+- Updated the menu parts copied from VDR to 1.7.35 including support for
+  sorting recordings with VDR 1.7.29 and above.
+
 2012-06-27: Version 0.1.7
 
 - If server recordings are mounted in a subdirectory of local video dir,
@@ -9,8 +29,8 @@ VDR Plugin 'remotetimers' Revision History
   mtime and device id of .update file already in SetupParse(), i.e. before VDR
   starts to scan recordings.
 - Updated Slovak translations (thanks to Milan Hrala)
-- Added vdr-1.7.28-remote_instant_recordings.patch to display remote timers
-  in skin LCARS' main menu view
+- Added vdr-1.7.28-skinlcars.patch to display remote timers in skin LCARS'
+  main menu view
 - Fixed RemoteTimers::ForEach service call
 - With 1.7.28 or newer, show remaining disk space in minutes based on size and
   length of currently selected recording in menus "Recording info" and "Edit

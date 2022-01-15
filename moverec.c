@@ -211,9 +211,7 @@ bool cMoveRec::Move(const cRecording* Recording, const char* DstDir)
 void cMoveRec::Action()
 {
 	SetPriority(19);
-#if VDRVERSNUM >= 10706
 	SetIOPriority(7);
-#endif
 	cReadDir dir(srcDir);
 	if (dir.Ok()) {
 		if (MakeDirs(dstDir, true)) {

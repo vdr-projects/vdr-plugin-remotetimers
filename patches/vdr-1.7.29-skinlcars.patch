@@ -31,7 +31,7 @@ and recompile.
  #include "symbols/arrowdown.xpm"
  #include "symbols/arrowup.xpm"
  #include "symbols/audio.xpm"
-@@ -1142,12 +1155,25 @@
+@@ -1158,12 +1171,25 @@
  
  void cSkinLCARSDisplayMenu::DrawTimers(void)
  {
@@ -56,9 +56,9 @@ and recompile.
 +        SortedTimers.Sort(PluginRemoteTimers::CompareTimers);
 +        }
       cVector<int> FreeDeviceSlots;
+      int NumDevices = 0;
       int y = ys04;
-      // Timers and recording devices:
-@@ -1158,7 +1184,7 @@
+@@ -1175,7 +1201,7 @@
                 if (y + lineHeight > ys05)
                    break;
                 if (const cTimer *Timer = SortedTimers[i]) {
@@ -67,10 +67,10 @@ and recompile.
                       if (cRecordControl *RecordControl = cRecordControls::GetRecordControl(Timer)) {
                          if (!Device || Device == RecordControl->Device()) {
                             DrawTimer(Timer, y, NumTimers > 0);
-@@ -1206,6 +1232,8 @@
+@@ -1233,6 +1259,8 @@
           }
-      osd->DrawText(xs02, ys00, itoa(Timers.Count()), Theme.Color(clrMenuFrameFg), frameColor, font, xs03 - xs02, ys01 - ys00, taBottom | taLeft | taBorder);
-      osd->DrawText(xs08, ys00, itoa(cDevice::NumDevices()), Theme.Color(clrMenuFrameFg), frameColor, font, xs09 - xs08, ys01 - ys00, taBottom | taRight | taBorder);
+      osd->DrawText(xs02, ys00, itoa(NumTimers), Theme.Color(clrMenuFrameFg), frameColor, font, xs03 - xs02, ys01 - ys00, taBottom | taLeft | taBorder);
+      osd->DrawText(xs08, ys00, itoa(NumDevices), Theme.Color(clrMenuFrameFg), frameColor, font, xs09 - xs08, ys01 - ys00, taBottom | taRight | taBorder);
 +     if (*errorMsg)
 +        SetMessage(mtError, *errorMsg);
       lastSignalDisplay = 0;
