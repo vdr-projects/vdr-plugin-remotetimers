@@ -15,7 +15,7 @@
 #include "watcher.h"
 #include "i18n.h"
 
-static const char *VERSION        = "0.1.3";
+static const char *VERSION        = "0.1.4-alpha1";
 static const char *DESCRIPTION    = trNOOP("Edit timers on remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote Timers");
 
@@ -132,72 +132,267 @@ bool cPluginRemotetimers::SetupParse(const char *Name, const char *Value)
 bool cPluginRemotetimers::Service(const char *Id, void *Data)
 {
   // Handle custom service requests from other plugins
+
+  cSvdrp *svdrp = cSvdrp::GetInstance();
+
   if (strcmp(Id, "RemoteTimers::InstantRecording-v1.0") == 0) {
      if (Data) {
         RemoteTimers_InstantRecording_v1_0 *ir = (RemoteTimers_InstantRecording_v1_0 *) Data;
-	ir->name = ir->fileName = NULL;
-	if (ir->pause ? RemoteTimersSetup.remotePause : RemoteTimersSetup.remoteInstant) {
-	   bool timerAdded = false;
-	   cSvdrp *svdrp = cSvdrp::GetInstance();
-	   if (svdrp->Connect()) {
-	      cRemoteTimer *rt = new cRemoteTimer();
-	      *(cTimer*) rt = *ir->timer;
+         ir->name = ir->fileName = NULL;
+         if (ir->pause ? RemoteTimersSetup.remotePause : RemoteTimersSetup.remoteInstant) {
+            bool timerAdded = false;
+            if (svdrp->Connect()) {
+               cRemoteTimer *rt = new cRemoteTimer();
+               *(cTimer*) rt = *ir->timer;
 
-	      // set file name
-	      cRecording recording(rt, ir->event);
+               // set file name
+               cRecording recording(rt, ir->event);
 
-	      PluginRemoteTimers::cMenuTimerItem::UpdateUser(*rt, MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
-	      if (RemoteTimers.New(rt) <= rtsRefresh) {
-		 timerAdded = true;
-	         if (*RemoteTimersSetup.serverDir) {
-	            ir->name = cString::sprintf("%s~%s", RemoteTimersSetup.serverDir, recording.Name());
+               PluginRemoteTimers::cMenuTimerItem::UpdateUser(*rt, MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
+               if (RemoteTimers.New(rt) <= rtsRefresh) {
+                   timerAdded = true;
+                   if (*RemoteTimersSetup.serverDir) {
+                      ir->name = cString::sprintf("%s~%s", RemoteTimersSetup.serverDir, recording.Name());
 
-		    int len = strlen(VideoDirectory);
-		    ir->fileName = recording.FileName();
-		    if (strncmp(ir->fileName, VideoDirectory, strlen(VideoDirectory)) == 0 && ir->fileName[len] == '/') {
-		       char *serverDir = ExchangeChars(strdup(RemoteTimersSetup.serverDir), true);
-		       ir->fileName = cString::sprintf("%s/%s%s", VideoDirectory, serverDir, ir->fileName + len);
-		       free(serverDir);
-		    }
-		    else {
-		       esyslog("RemoteTimers::InstantRecording: Unexpected filename '%s'", *ir->fileName);
-		    }
-	         }
-	         else {
-		    ir->name = recording.Name();
-	            ir->fileName = recording.FileName();
-	         }
-	      }
-	      else {
-	         esyslog("RemoteTimers::InstantRecording: Failed to add new timer");
-	         delete rt;
-	      }
-	      svdrp->Disconnect();
-	   }
-	   if (!timerAdded)
-	      return !Interface->Confirm(trREMOTETIMERS("Remote recording failed. Start local recording?"));
-	}
-	else
-	   return false;
+                      int len = strlen(VideoDirectory);
+                      ir->fileName = recording.FileName();
+                      if (strncmp(ir->fileName, VideoDirectory, strlen(VideoDirectory)) == 0 && ir->fileName[len] == '/') {
+                         char *serverDir = ExchangeChars(strdup(RemoteTimersSetup.serverDir), true);
+                         ir->fileName = cString::sprintf("%s/%s%s", VideoDirectory, serverDir, ir->fileName + len);
+                         free(serverDir);
+                      }
+                      else {
+                         esyslog("RemoteTimers::InstantRecording: Unexpected filename '%s'", *ir->fileName);
+                      }
+                  }
+                  else {
+                      ir->name = recording.Name();
+                      ir->fileName = recording.FileName();
+                  }
+               }
+               else {
+                  esyslog("RemoteTimers::InstantRecording: Failed to add new timer");
+                  delete rt;
+               }
+            }
+            svdrp->Disconnect();
+            if (!timerAdded)
+               return !Interface->Confirm(trREMOTETIMERS("Remote recording failed. Start local recording?"));
+         }
+         else
+            return false;
      }
      return true;
   }
 
+  if (strcmp(Id, "RemoteTimers::RefreshTimers-v1.0") == 0) {
+     if (Data) {
+        cString *errorMsg = (cString *) Data;
+        if (!svdrp->Connect() || RemoteTimers.Refresh() != rtsOk)
+           *errorMsg = tr(MSG_UNAVAILABLE);
+        svdrp->Disconnect();
+        return **errorMsg == NULL;
+     }
+     return true;
+  }
+
+  if (strcmp(Id, "RemoteTimers::GetMatch-v1.0") == 0) {
+     if (Data) {
+        RemoteTimers_GetMatch_v1_0 *match = (RemoteTimers_GetMatch_v1_0 *) Data;
+        match->timer = PluginRemoteTimers::GetBestMatch(match->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &match->timerMatch, &match->timerType, &match->isRemote);
+     }
+     return true;
+  }
+
+  if (strcmp(Id, "RemoteTimers::GetTimer-v1.0") == 0) {
+     if (Data) {
+        cTimer *t = *(cTimer **) Data;
+        cTimer **result = (cTimer **) Data;
+        *result = RemoteTimers.GetTimer(t);
+        if (!*result)
+           *result = Timers.GetTimer(t);
+     }
+     return true;
+  }
+
+  if (strcmp(Id, "RemoteTimers::NewTimer-v1.0") == 0) {
+     if (Data) {
+        RemoteTimers_Timer_v1_0 *data = (RemoteTimers_Timer_v1_0 *) Data;
+        cTimer *t = NULL;
+        int tm = tmNone;
+        bool isRemote = false;
+
+        if (data->event) {
+           // check for timer with user filter
+           t = PluginRemoteTimers::GetBestMatch(data->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &tm, NULL, &isRemote);
+
+           // if timer already exists, we're done
+           if (t && tm == tmFull) {
+              // if a timer was given, replace it
+              delete data->timer;
+              data->timer = t;
+              return true;
+           }
+           // check if timer exists without user filter
+           t = PluginRemoteTimers::GetBestMatch(data->event, 0, &tm, NULL, &isRemote);
+
+           // we need a timer object for this event now
+           if (!data->timer)
+              data->timer = new cTimer(data->event);
+        }
+        else if (!data->timer) {
+           esyslog("RemoteTimers::AddTimer service: either event or timer must be given");
+           return false;
+        }
+
+        // if there's no match by event, maybe there's a match by time?
+        if (!t || tm != tmFull) {
+           isRemote = true;
+           t = RemoteTimers.GetTimer(data->timer);
+        }
+        if (!t) {
+           isRemote = false;
+           t = Timers.GetTimer(data->timer);
+        }
+
+        if (t) {
+           // timer exists
+           delete data->timer;
+           data->timer = t;
+           if (tm != tmFull) 
+              return true;
+           else {
+              // matching timer, but it was filtered
+              int user = PluginRemoteTimers::cMenuTimerItem::ParseUser(t);
+              PluginRemoteTimers::cMenuTimerItem::UpdateUser(*t, user | MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
+              if (isRemote) {
+                 if (svdrp->Connect()) {
+                    eRemoteTimersState state = RemoteTimers.Modify((cRemoteTimer*)t);
+                    if (state > rtsRefresh)
+                       data->errorMsg = tr(RemoteTimers.GetErrorMessage(state));
+                 }
+                 else {
+                    data->errorMsg = tr(MSG_UNAVAILABLE);
+                 }
+                 svdrp->Disconnect();
+              }
+              else {
+                 Timers.SetModified();
+              }
+           }
+        }
+        else {
+           // new timer
+           PluginRemoteTimers::cMenuTimerItem::UpdateUser(*data->timer, MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
+           if (RemoteTimersSetup.addToRemote) {
+              if (svdrp->Connect()) {
+                 cRemoteTimer *rt = new cRemoteTimer();
+                 *(cTimer*) rt = *data->timer;
+                 delete(data->timer);
+                 data->timer = rt;
+                 eRemoteTimersState state = RemoteTimers.New(rt);
+                 if (state > rtsRefresh) {
+                    DELETENULL(data->timer);
+                    data->errorMsg = tr(RemoteTimers.GetErrorMessage(state));
+                    svdrp->Disconnect();
+                    return false;
+                 }
+              }
+              else {
+                 DELETENULL(data->timer);
+                 data->errorMsg = tr(MSG_UNAVAILABLE);
+              }
+              svdrp->Disconnect();
+           }
+           else {
+              Timers.Add(data->timer);
+              Timers.SetModified();
+           }
+           isyslog("timer %s added (active)", *data->timer->ToDescr());
+        }
+        return *data->errorMsg == NULL;
+     }
+     return true;
+  }
+
+  if (strcmp(Id, "RemoteTimers::ModTimer-v1.0") == 0) {
+     if (Data) {
+        RemoteTimers_Timer_v1_0 *data = (RemoteTimers_Timer_v1_0 *) Data;
+
+        for (cRemoteTimer *t = RemoteTimers.First(); t; t = RemoteTimers.Next(t)) {
+           if (t == data->timer) {
+              if (svdrp->Connect()) {
+                 eRemoteTimersState state = RemoteTimers.Modify(t);
+                 if (state > rtsRefresh)
+                    data->errorMsg = tr(RemoteTimers.GetErrorMessage(state));
+              }
+              else {
+                 data->errorMsg = tr(MSG_UNAVAILABLE);
+              }
+              svdrp->Disconnect();
+              return *data->errorMsg == NULL;
+           }
+        }
+        for (cTimer *t = Timers.First(); t; t = Timers.Next(t)) {
+           if (t == data->timer) {
+              Timers.SetModified();
+              return true;
+           }
+        }
+        // should not happen
+        esyslog("RemoteTimers::ModTimer service: timer not found");
+     }
+     return true;
+  }
+
+  if (strcmp(Id, "RemoteTimers::DelTimer-v1.0") == 0) {
+     if (Data) {
+        RemoteTimers_Timer_v1_0 *data = (RemoteTimers_Timer_v1_0 *) Data;
+
+        for (cRemoteTimer *t = RemoteTimers.First(); t; t = RemoteTimers.Next(t)) {
+           if (t == data->timer) {
+              if (svdrp->Connect()) {
+                 eRemoteTimersState state = RemoteTimers.Delete(t);
+                 if (state > rtsRefresh)
+                    data->errorMsg = tr(RemoteTimers.GetErrorMessage(state));
+              }
+              else {
+                 data->errorMsg = tr(MSG_UNAVAILABLE);
+              }
+              svdrp->Disconnect();
+              return *data->errorMsg == NULL;
+           }
+        }
+        for (cTimer *t = Timers.First(); t; t = Timers.Next(t)) {
+           if (t == data->timer) {
+              Timers.Del(t);
+              return true;
+           }
+        }
+        // should not happen
+        esyslog("RemoteTimers::DelTimer service: timer not found");
+     }
+     return true;
+  }
+
+  /*
+   * MainMenuHooks
+   */
   cOsdMenu **menu = (cOsdMenu**) Data;
   if (RemoteTimersSetup.replaceSchedule && strcmp(Id, "MainMenuHooksPatch-v1.0::osSchedule") == 0) {
-	  if (menu) 
-		  *menu = new ::PluginRemoteTimers::cMenuSchedule();
-	  return true;
+     if (menu) 
+        *menu = new ::PluginRemoteTimers::cMenuSchedule();
+     return true;
   }
   if (RemoteTimersSetup.replaceTimers && strcmp(Id, "MainMenuHooksPatch-v1.0::osTimers") == 0) {
-	  if (menu) 
-		  *menu = new ::PluginRemoteTimers::cMenuTimers();
-	  return true;
+     if (menu) 
+        *menu = new ::PluginRemoteTimers::cMenuTimers();
+     return true;
   }
   if (RemoteTimersSetup.replaceRecordings && strcmp(Id, "MainMenuHooksPatch-v1.0::osRecordings") == 0) {
-	  if (menu) 
-		  *menu = new ::PluginRemoteTimers::cMenuRecordings();
-	  return true;
+     if (menu) 
+        *menu = new ::PluginRemoteTimers::cMenuRecordings();
+     return true;
   }
   return false;
 }

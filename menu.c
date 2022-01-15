@@ -55,8 +55,6 @@ namespace PluginRemoteTimers {
 
 #define CHNUMWIDTH  (numdigits(Channels.MaxNumber()) + 1)
 
-#define MSG_UNAVAILABLE trNOOP("Remote timers not available")
-
 #define AUX_STARTTAG "<remotetimers>"
 #define AUX_ENDTAG "</remotetimers>"
 
@@ -2196,7 +2194,7 @@ eOSState cMenuEditRecording::Cut()
      cMarks Marks;
      if (Marks.Load(recording->FileName()) && Marks.Count()) {
         const char *name = recording->Name();
-	int len = strlen(RemoteTimersSetup.serverDir);
+        int len = strlen(RemoteTimersSetup.serverDir);
         bool remote = len == 0 || (strstr(name, RemoteTimersSetup.serverDir) == name && name[len] == FOLDERDELIMCHAR);
         if (!remote) {
            if (!cCutter::Active()) {
@@ -2209,23 +2207,25 @@ eOSState cMenuEditRecording::Cut()
               Skins.Message(mtError, tr("Editing process already active!"));
            }
         else if (cSvdrp::GetInstance()->Connect()) {
-	   char *date = strdup(recording->Title(' ', false));
-	   char *p = strchr(date, ' ');
-	   if (p && (p = strchr(++p, ' ')) && p) {
+           char *date = strdup(recording->Title(' ', false));
+           char *p = strchr(date, ' ');
+           if (p && (p = strchr(++p, ' ')) && p) {
               *p = 0;
               eRemoteRecordingsState state = RemoteRecordings.Cut(date, name + (len ? len + 1 : 0));
               if (state == rrsOk)
                  Skins.Message(mtInfo, trREMOTETIMERS("Remote editing process started"));
               else
                  Skins.Message(state == rrsLocked ? mtWarning : mtError, tr(RemoteRecordings.GetErrorMessage(state)));
-              cSvdrp::GetInstance()->Disconnect();
-	      }
+              }
            else
               esyslog("remotetimers: unexpected title format '%s'", date);
            free(date);
+           cSvdrp::GetInstance()->Disconnect();
            }
-        else
+        else {
            Skins.Message(mtError, tr(MSG_UNAVAILABLE));
+           cSvdrp::GetInstance()->Disconnect();
+           }
         }
      else
         Skins.Message(mtError, tr("No editing marks defined!"));
@@ -2327,11 +2327,25 @@ bool cMenuEditRecording::UpdatePrioLife(cRecording *Recording)
 
 bool cMenuEditRecording::UpdateName(cRecording *Recording)
 {
+  int len = strlen(name);
+  if (!len) {
+     // user cleared name - restore previous value
+     strn0cpy(name, Recording->Name(), sizeof(name));
+     return false;
+  }
+
   char *oldFileName = strdup(Recording->FileName());
   char *p = strrchr(oldFileName, '/');
   cString freeStr(oldFileName, true);
   if (p) {
+     // cMenuEditStrItem strips trailing whitespace characters
+     // If name ends with FOLDERDELIMCHAR assume there was a space
+     if (len < MaxFileName - 1 && name[len - 1] == FOLDERDELIMCHAR) {
+         name[len++] = ' ';
+         name[len] = '\0';
+     }
      cString newFileName(ExchangeChars(strdup(name), true), true);
+dsyslog("old: %s new: %s / %s - %s", oldFileName, VideoDirectory, *newFileName, p);
      newFileName = cString::sprintf("%s/%s%s", VideoDirectory, *newFileName, p);
      if (Rename(oldFileName, newFileName)) {
 	fileName = newFileName;

@@ -22,6 +22,10 @@
 
 namespace PluginRemoteTimers {
 
+#define MSG_UNAVAILABLE trNOOP("Remote timers not available")
+
+cTimer* GetBestMatch(const cEvent *Event, int UserMask, int *Match, int *Type, bool *Remote);
+
 #if APIVERSNUM < 10712
 
 // copy of VDR's cNestedItem / cNestedItemList

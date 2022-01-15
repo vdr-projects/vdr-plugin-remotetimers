@@ -1,6 +1,14 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
+2010-10-xx: Version 0.1.4
+
+- Moving recordings into folders named ' ' failed or caused unexpected
+  results as VDR's text input control strips trailing whitespace. Now
+  folder ' ' is assumed when renaming a recording and the name ends with
+  the folder delimiter character
+- Don't rename a recording if the user completely wiped out the name
+
 2010-02-22: Version 0.1.3
 
 - API changes for VDR 1.7.12+
