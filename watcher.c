@@ -44,7 +44,11 @@ void cUpdateWatcher::DeleteInstance()
 cUpdateWatcher::cUpdateWatcher(): cThread("remotetimers update file watcher")
 {
 	serverLastModifiedTime = 0;
+#if APIVERSNUM > 20101
+	clientUpdateFile = AddDirectory(cVideoDirectory::Name(), ".update");
+#else
 	clientUpdateFile = AddDirectory(VideoDirectory, ".update");
+#endif
 	clientLastDev = 0;
 	inSubDir = false;
 }
@@ -63,7 +67,11 @@ void cUpdateWatcher::Initialize()
 		// server recordings in subdir: check mtime of subdir/.update
 		char *tmpDir = strdup(RemoteTimersSetup.serverDir);
 		tmpDir = ExchangeChars(tmpDir, true);
+#if APIVERSNUM > 20101
+		serverUpdateFile = AddDirectory(cVideoDirectory::Name(), AddDirectory(tmpDir, ".update"));
+#else
 		serverUpdateFile = AddDirectory(VideoDirectory, AddDirectory(tmpDir, ".update"));
+#endif
 	        serverLastModifiedTime = LastModifiedTime(serverUpdateFile);
 		free(tmpDir);
 	}

@@ -1,6 +1,14 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
+2015-07-29: Version 1.0.2
+
+- Added compatibility for VDR 2.1.2 (thanks to Christopher Reimer and Lars
+  Hanisch)
+- Added support for graphtft. Use -DUSE_GRAPHTFT when compiling to enable.
+  (thanks to Jörg Wendel)
+- Updated MainMenuHooks patch for VDR 2.0.4
+
 2013-08-12: Version 1.0.1
 
 - Fixed channel name width in schedule menus (reported by hummel99@vdrportal)
