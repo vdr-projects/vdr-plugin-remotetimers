@@ -4,7 +4,7 @@
  * See the main source file 'vdr.c' for copyright information and
  * how to reach the author.
  *
- * $Id: menu.c 1.477 2008/02/16 13:53:26 kls Exp $
+ * $Id: menu.c 2.7 2009/05/03 13:30:13 kls Exp $
  */
 
 #include "menu.h"
@@ -24,7 +24,7 @@
 //#include "i18n.h"
 #include <vdr/interface.h>
 //#include "plugin.h"
-//#include "recording.h"
+#include <vdr/recording.h>
 //#include "remote.h"
 //#include "shutdown.h"
 //#include "sources.h"
@@ -148,9 +148,18 @@ private:
   static time_t lastDiskSpaceCheck;
   static int lastFreeMB;
   static cString freeDiskSpaceString;
+#if VDRVERSNUM >= 10515
+  static cString lastPath;
+  static int VideoDiskSpace(const char *Dir, int *FreeMB);
+  static int DeletedFileSizeMB(const char *Dir);
+#endif
 public:
+#if VDRVERSNUM >= 10515
+  static bool HasChanged(const char *SubDir, bool ForceCheck = false);
+#else
   static bool HasChanged(bool ForceCheck = false);
-  static const char *FreeDiskSpaceString(void) { HasChanged(); return freeDiskSpaceString; }
+#endif
+  static const char *FreeDiskSpaceString() { return freeDiskSpaceString; }
   };
 
 time_t cFreeDiskSpace::lastDiskSpaceCheck = 0;
@@ -159,11 +168,26 @@ cString cFreeDiskSpace::freeDiskSpaceString;
 
 cFreeDiskSpace FreeDiskSpace;
 
+#if VDRVERSNUM >= 10515
+cString cFreeDiskSpace::lastPath("/");
+
+bool cFreeDiskSpace::HasChanged(const char *SubDir, bool ForceCheck)
+{
+  cString path(ExchangeChars(strdup(SubDir ? SubDir : ""), true), true);
+  path = cString::sprintf("%s/%s", VideoDirectory, *path);
+  if (ForceCheck || time(NULL) - lastDiskSpaceCheck > DISKSPACECHEK || !EntriesOnSameFileSystem(path, lastPath)) {
+     int FreeMB;
+     lastPath = path;
+     int Percent = IsOnVideoDirectoryFileSystem(path) ? ::VideoDiskSpace(&FreeMB) : VideoDiskSpace(path, &FreeMB);
+
+#else
+
 bool cFreeDiskSpace::HasChanged(bool ForceCheck)
 {
   if (ForceCheck || time(NULL) - lastDiskSpaceCheck > DISKSPACECHEK) {
      int FreeMB;
      int Percent = VideoDiskSpace(&FreeMB);
+#endif
      lastDiskSpaceCheck = time(NULL);
      if (ForceCheck || FreeMB != lastFreeMB) {
         int Minutes = int(double(FreeMB) / MB_PER_MINUTE);
@@ -176,6 +200,34 @@ bool cFreeDiskSpace::HasChanged(bool ForceCheck)
      }
   return false;
 }
+
+#if VDRVERSNUM >= 10515
+int cFreeDiskSpace::VideoDiskSpace(const char *Dir, int *FreeMB)
+{
+  int used = 0;
+  int free = FreeDiskSpaceMB(Dir, &used);
+  int deleted = DeletedFileSizeMB(Dir);
+  if (deleted > used)
+     deleted = used;
+  free += deleted;
+  used -= deleted;
+  if (FreeMB)
+     *FreeMB = free;
+  return (free + used) ? used * 100 / (free + used) : 0;
+}
+
+int cFreeDiskSpace::DeletedFileSizeMB(const char *Dir)
+{
+  int size = 0;
+  cThreadLock DeletedRecordingsLock(&DeletedRecordings);
+  for (cRecording *recording = DeletedRecordings.First(); recording; recording = DeletedRecordings.Next(recording)) {
+      int fileSizeMB = DirSizeMB(recording->FileName());
+      if (fileSizeMB > 0 && EntriesOnSameFileSystem(Dir, recording->FileName()))
+         size += fileSizeMB;
+      }
+  return size;
+}
+#endif
 
 // --- cMenuEditRemoteTimer --------------------------------------------------------
 class cMenuEditRemoteTimer : public cMenuEditTimer {
@@ -1436,6 +1488,9 @@ cMenuRecording::cMenuRecording(const cRecording *Recording, bool WithButtons)
   withButtons = WithButtons;
   if (withButtons)
      SetHelp(tr("Button$Play"), tr("Button$Rewind"));
+  cIndexFile index(Recording->FileName(), false);
+  int last = index.Last();
+  SetTitle(cString::sprintf("%s - %d MB %s%s", tr("Recording info"), DirSizeMB(Recording->FileName()), last >= 0 ? "- " : "", last >= 0 ? *IndexToHMSF(last) : ""));
 }
 
 void cMenuRecording::Display(void)
@@ -1490,14 +1545,15 @@ private:
   char name[MaxFileName];
   int user;
   int tmpUser;
-  char *fileName;
+  cString fileName;
   eOSState Commands(eKeys Key = kNone);
   eOSState Cut(void);
   eOSState Info(void);
   void SetHelpKeys(void);
   bool Rename(const char *Old, const char *New);
-  bool UpdateData(cRecording *Recording);
+  bool UpdatePrioLife(cRecording *Recording);
   bool UpdateName(cRecording *Recording);
+  static bool ModifyInfo(cRecording *Recording, const char *buffer);
 public:
   static bool UpdateUser(cRecording *Recording, int NewUser);
 
@@ -1509,13 +1565,16 @@ public:
 cMenuEditRecording::cMenuEditRecording(const cRecording *Recording)
 :cOsdMenu(trREMOTETIMERS("Edit recording"), 12)
 {
-  // Must be locked agains Recordings
+  // Must be locked against Recordings
   priority = Recording->priority;
   lifetime = Recording->lifetime;
   strn0cpy(name, Recording->Name(), sizeof(name));
   tmpUser = user = ParseUser(Recording->Info()->Aux());
-  fileName = strdup(Recording->FileName());
+  fileName = Recording->FileName();
   SetHelpKeys();
+  cIndexFile index(*fileName, false);
+  int last = index.Last();
+  SetTitle(cString::sprintf("%s - %d MB %s%s", trREMOTETIMERS("Edit recording"), DirSizeMB(*fileName), last >= 0 ? "- " : "", last >= 0 ? *IndexToHMSF(last) : ""));
   Add(new cMenuEditIntItem(tr("Priority"), &priority, 0, MAXPRIORITY));
   Add(new cMenuEditIntItem(tr("Lifetime"), &lifetime, 0, MAXLIFETIME));
   Add(new cMenuEditUserItem(trREMOTETIMERS("User ID"), &tmpUser));
@@ -1525,7 +1584,6 @@ cMenuEditRecording::cMenuEditRecording(const cRecording *Recording)
 
 cMenuEditRecording::~cMenuEditRecording()
 {
-  free(fileName);
 }
 
 eOSState cMenuEditRecording::Commands(eKeys Key)
@@ -1533,7 +1591,7 @@ eOSState cMenuEditRecording::Commands(eKeys Key)
   if (HasSubMenu())
      return osContinue;
   cMenuCommands *menu;
-  eOSState state = AddSubMenu(menu = new cMenuCommands(tr("Recording commands"), &RecordingCommands, cString::sprintf("\"%s\"", *strescape(fileName, "\\\"$"))));
+  eOSState state = AddSubMenu(menu = new cMenuCommands(tr("Recording commands"), &RecordingCommands, cString::sprintf("\"%s\"", *strescape(*fileName, "\\\"$"))));
   if (Key != kNone) {
      state = menu->ProcessKey(Key);
      return state;
@@ -1544,7 +1602,7 @@ eOSState cMenuEditRecording::Commands(eKeys Key)
 eOSState cMenuEditRecording::Cut()
 {
   cThreadLock RecordingsLock(&Recordings);
-  cRecording *recording = Recordings.GetByName(fileName);
+  cRecording *recording = Recordings.GetByName(*fileName);
   if (recording) {
      cMarks Marks;
      if (Marks.Load(recording->FileName()) && Marks.Count()) {
@@ -1553,7 +1611,7 @@ eOSState cMenuEditRecording::Cut()
         bool remote = len == 0 || (strstr(name, RemoteTimersSetup.serverDir) == name && name[len] == '~');
         if (!remote) {
            if (!cCutter::Active()) {
-              if (cCutter::Start(fileName))
+              if (cCutter::Start(*fileName))
                  Skins.Message(mtInfo, tr("Editing process started"));
               else
                  Skins.Message(mtError, tr("Can't start editing process!"));
@@ -1593,96 +1651,106 @@ eOSState cMenuEditRecording::Info(void)
   if (HasSubMenu())
      return osContinue;
   cThreadLock RecordingsLock(&Recordings);
-  cRecording *recording = Recordings.GetByName(fileName);
+  cRecording *recording = Recordings.GetByName(*fileName);
   if (recording && recording->Info()->Title())
      return AddSubMenu(new cMenuRecording(recording, true));
   return osContinue;
 }
 
-bool cMenuEditRecording::UpdateUser(cRecording *Recording, int NewUser)
+#define INFOFILE_PES "info.vdr"
+#define INFOFILE_TS "info"
+bool cMenuEditRecording::ModifyInfo(cRecording *Recording, const char *Info)
 {
-  bool tainted = false;
-
   // check for write access as cRecording::WriteInfo() always returns true
   // TODO: writing may still fail as access() doesn't use the effective UID
-  cString InfoFileName = cString::sprintf("%s/info.vdr", Recording->FileName());
+#if VDRVERSNUM >= 10703
+  cString InfoFileName = cString::sprintf(Recording->IsPesRecording() ? "%s/" INFOFILE_PES : "%s/" INFOFILE_TS, Recording->FileName());
+#else
+  cString InfoFileName = cString::sprintf("%s/" INFOFILE_PES, Recording->FileName());
+#endif
   if (access(InfoFileName, W_OK) == 0) {
-     cString buffer(PluginRemoteTimers::UpdateUser(Recording->Info()->Aux(), NewUser));
-     buffer = cString::sprintf("@ %s", *buffer);
-     FILE *f = fmemopen((void *) *buffer, strlen(*buffer) * sizeof(char), "r");
+     FILE *f = fmemopen((void *) Info, strlen(Info) * sizeof(char), "r");
      if (f) {
         // Casting const away is nasty, but what the heck?
         // The Recordings thread is locked and the object is going to be deleted anyway.
         if (((cRecordingInfo *)Recording->Info())->Read(f) && Recording->WriteInfo())
            return true;
-        tainted = true;
-        esyslog("remotetimers: error in aux string '%s'", *buffer);
+        esyslog("remotetimers: error in info string '%s'", Info);
 	}
      else
         esyslog("remotetimers: error in fmemopen: %m");
      }
   else
      esyslog("remotetimers: '%s' not writeable: %m", *InfoFileName);
+  return false;
+}
+
+bool cMenuEditRecording::UpdateUser(cRecording *Recording, int NewUser)
+{
+  cString buffer(PluginRemoteTimers::UpdateUser(Recording->Info()->Aux(), NewUser));
+  buffer = cString::sprintf("@ %s", *buffer);
+  if (ModifyInfo(Recording, buffer))
+     return true;
   Skins.Message(mtError, trREMOTETIMERS("Unable to update user ID"));
-  return tainted;
+  return false;
 }
 
 #define PRIO_LIFE_FORMAT ".%02d.%02d.rec"
-bool cMenuEditRecording::UpdateData(cRecording *Recording)
+bool cMenuEditRecording::UpdatePrioLife(cRecording *Recording)
 {
-  bool renamed = false;
-
-  char *newName = strdup(Recording->FileName());
-  size_t len = strlen(newName);
-  cString oldData = cString::sprintf(PRIO_LIFE_FORMAT, Recording->priority, Recording->lifetime);
-  cString newData = cString::sprintf(PRIO_LIFE_FORMAT, priority, lifetime);
-  size_t lenReplace = strlen(oldData);
-  if (lenReplace < len) {
-     if (strlen(newData) == lenReplace) {
-        char *p = newName + len - lenReplace;
-        if (strcmp(p, oldData) == 0) {
-           strncpy(p, newData, lenReplace);
-           renamed = Rename(Recording->FileName(), newName);
-           }
-        else
-           esyslog("remotetimers: unexpected filename '%s'", fileName);
-        }
-     else
-        esyslog("remotetimers: invalid priority/lifetime data for '%s'", fileName);
+#if VDRVERSNUM >= 10703
+  if (!Recording->IsPesRecording()) {
+     cString buffer = cString::sprintf("P %d\nL %d", priority, lifetime);
+     if (ModifyInfo(Recording, *buffer))
+        return true;
      }
   else
-     esyslog("remotetimers: short filename '%s'", fileName);
-  
-  if (renamed) {
-     free(fileName);
-     fileName = newName;
+#endif
+  {
+     char *newName = strdup(Recording->FileName());
+     size_t len = strlen(newName);
+     cString freeStr(newName, true);
+     cString oldData = cString::sprintf(PRIO_LIFE_FORMAT, Recording->priority, Recording->lifetime);
+     cString newData = cString::sprintf(PRIO_LIFE_FORMAT, priority, lifetime);
+     size_t lenReplace = strlen(oldData);
+     if (lenReplace < len) {
+        if (strlen(newData) == lenReplace) {
+           char *p = newName + len - lenReplace;
+           if (strcmp(p, oldData) == 0) {
+              strncpy(p, newData, lenReplace);
+              if (Rename(Recording->FileName(), newName)) {
+                 fileName = newName;
+                 return true;
+                 }
+              }
+           else
+              esyslog("remotetimers: unexpected filename '%s'", *fileName);
+           }
+        else
+           esyslog("remotetimers: invalid priority/lifetime data for '%s'", *fileName);
+        }
+     else
+        esyslog("remotetimers: short filename '%s'", *fileName);
      }
-  else {
-     Skins.Message(mtError, trREMOTETIMERS("Unable to change priority/lifetime"));
-     free(newName);
-     }
-  return renamed;
+  Skins.Message(mtError, trREMOTETIMERS("Unable to change priority/lifetime"));
+  return false;
 }
 
 bool cMenuEditRecording::UpdateName(cRecording *Recording)
 {
-  bool renamed = false;
-
   char *oldFileName = strdup(Recording->FileName());
   char *p = strrchr(oldFileName, '/');
+  cString freeStr(oldFileName, true);
   if (p) {
      cString newFileName(ExchangeChars(strdup(name), true), true);
      newFileName = cString::sprintf("%s/%s%s", VideoDirectory, *newFileName, p);
-     renamed = Rename(oldFileName, newFileName);
-     if (renamed) {
-	free(fileName);
-	fileName = strdup(newFileName);
+     if (Rename(oldFileName, newFileName)) {
+	fileName = newFileName;
+        return true;
         }
      }
-  if (!renamed)
-     Skins.Message(mtError, trREMOTETIMERS("Unable to rename recording"));
-  free(oldFileName);
-  return renamed;
+  Skins.Message(mtError, trREMOTETIMERS("Unable to rename recording"));
+  return false;
 }
 
 bool cMenuEditRecording::Rename(const char *Old, const char *New) {
@@ -1716,18 +1784,18 @@ eOSState cMenuEditRecording::ProcessKey(eKeys Key)
        case kInfo:   return Info();
        case kOk:     {
                         cThreadLock recordingsLock(&Recordings);
-                        cRecording *recording = Recordings.GetByName(fileName);
+                        cRecording *recording = Recordings.GetByName(*fileName);
                         if (recording) {
                            bool replace = false;
                            if (user != tmpUser)
                               replace |= UpdateUser(recording, tmpUser);
                            if (priority != recording->priority || lifetime != recording->lifetime)
-                              replace |= UpdateData(recording);
+                              replace |= UpdatePrioLife(recording);
                            if (strcmp(name, recording->Name()) != 0)
                               replace |= UpdateName(recording);
                            if (replace) {
                               Recordings.Del(recording);
-                              Recordings.AddByName(fileName);
+                              Recordings.AddByName(*fileName);
                               }
                            }
                         else
@@ -1851,7 +1919,11 @@ cMenuRecordings::~cMenuRecordings()
 
 bool cMenuRecordings::SetFreeDiskDisplay(bool Force)
 {
+#if VDRVERSNUM >= 10515
+  if (FreeDiskSpace.HasChanged(base, Force)) {
+#else
   if (FreeDiskSpace.HasChanged(Force)) {
+#endif
      //XXX -> skin function!!!
      if (userFilter == 0)
         SetTitle(cString::sprintf("%s - %s", base ? base : tr("Recordings"), FreeDiskSpace.FreeDiskSpaceString()));
@@ -1987,10 +2059,17 @@ eOSState cMenuRecordings::Rewind(void)
      return osContinue;
   cMenuRecordingItem *ri = (cMenuRecordingItem *)Get(Current());
   if (ri && !ri->IsDirectory()) {
-     cDevice::PrimaryDevice()->StopReplay(); // must do this first to be able to rewind the currently replayed recording
-     cResumeFile ResumeFile(ri->FileName());
-     ResumeFile.Delete();
-     return Play();
+     cRecording *recording = GetRecording(ri);
+     if (recording) {
+        cDevice::PrimaryDevice()->StopReplay(); // must do this first to be able to rewind the currently replayed recording
+#if VDRVERSNUM >= 10703
+        cResumeFile ResumeFile(ri->FileName(), recording->IsPesRecording());
+#else
+        cResumeFile ResumeFile(ri->FileName());
+#endif
+        ResumeFile.Delete();
+        return Play();
+        }
      }
   return osContinue;
 }

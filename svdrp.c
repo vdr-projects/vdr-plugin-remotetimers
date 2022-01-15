@@ -92,7 +92,7 @@ bool cRemoteTimer::Parse(const char *s) {
 	if (s && id > 0) {
 		result = cTimer::Parse(s);
 		// Parse clears the recording flag
-		if (atoi(s) & tfRecording)
+		if (result && (atoi(s) & tfRecording))
 			SetRecording(true);
 	}
 	return result;
@@ -285,7 +285,7 @@ cRemoteTimer *cRemoteTimers::GetTimer(cTimer *Timer)
 {
 	for (cRemoteTimer *ti = First(); ti; ti = Next(ti)) {
 		if (ti->Channel() == Timer->Channel() &&
-				(ti->WeekDays() && ti->WeekDays() == Timer->WeekDays() || !ti->WeekDays() && ti->Day() == Timer->Day()) &&
+				((ti->WeekDays() && ti->WeekDays() == Timer->WeekDays()) || (!ti->WeekDays() && ti->Day() == Timer->Day())) &&
 				ti->Start() == Timer->Start() &&
 				ti->Stop() == Timer->Stop())
 			return ti;

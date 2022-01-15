@@ -56,12 +56,16 @@ If you didn't do that already (otherwise svdrpservice.h is missing):
 3.1. Applying patches:
 ----------------------
 In the patches directory of the remotetimers source distribution you will
-find two patches for VDR. Both are optional, i.e. remotetimers will work
-just fine without them, but add support for some additional features:
+find some patches for VDR. They are all optional, i.e. remotetimers will
+work just fine without them, but add support for some additional features:
 
 - MainMenuHooks: replace the VDR menus "Schedule", "Timers" and "Recordings"
   with the corresponding plugin menus.
 - remote_instant_recordings: redirects instant recordings to the server VDR
+- video_on_networkshare: fixes a bug in VDR. Apply if your local video
+  directory and at least one of its subdirectories are network mounts of
+  different shares. Without the patch the calculated amount of free
+  diskspace will not always be accurate.
 
 A detailed description of the patches and instructions how to apply them can
 be found in the patch files.
@@ -143,7 +147,7 @@ the user who is current at the moment the timer is created.
 
 *** Settings for menu ***
 
-- Binding of Ok/Blue keys in "What's on" menus
+- Binding of Ok/Blue in "What's on" menus
 Vanilla VDR shows the EPG details with "Ok" and switches to the selected
 channel with "Blue". Swap it if you like.
 
@@ -226,7 +230,7 @@ possibilities: keep user state or not.
 
 The latter means that VDR will forget about the current user everytime you
 enter the menu. The filter is always reset to the value specified in the
-plugin setup (User ID filter in menu "..."). Most likely you will turn of
+plugin setup (User ID filter in menu "..."). Most likely you will turn off
 filtering by default (i.e. user "0"). For the default user ID of new timers,
 "0" or all user IDs would be a good choice in this case.
 
@@ -267,9 +271,24 @@ Note that you cannot move a running timer. It has to be stopped first.
 As in the timers menu, hit the number keys to change the user ID filter.
 The "red" button will neither start to replay a recording nor will it open
 the recording commands menu. Instead it allows you to edit the recording.
-You can change the priority, livetime, user IDs and the name. "Red" gives
+You can change the priority, lifetime, user IDs and the name. "Red" gives
 you the recording commands, "green" starts the cutter on the recording. For
 a network mounted recording, the cutter is started on the remote VDR.
+
+In contrast to VDR's original recordings menu, the disk space information
+in the title bar always corresponds to the filesystem of the currently
+selected directory. So if there are subdirectories in your video directory
+which live on a different partition or on a network share, the disk space
+information changes when descending into this directory (requires at least
+VDR 1.5.15). Unfortunately there's a problem with the way VDR tests for
+directories on different filesystems. It will fail, if the base video
+directory itself is a network mount (e.g. NFS or CIFS). From the patches
+subdirectory, apply vdr-1.5.15-1.7.9-video_on_networkshare.diff to fix
+this. The patch is not required if the video directory is on a local
+harddrive and subdirectories are network mounts.
+
+The titles of the "Recording info" and "Edit recording" menus include
+the recording's size and length.
 
 6. Major open issues:
 ---------------------
