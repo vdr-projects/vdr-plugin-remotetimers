@@ -8,6 +8,7 @@
 #define _REMOTETIMERS_SETUP__H
 
 #include <vdr/config.h>
+#include "menuitems.h"
 
 #define MAX_IP_LENGTH 16
 
@@ -15,11 +16,19 @@ struct cRemoteTimersSetup {
 	int hideMainMenuEntry;
 	int replaceSchedule;
 	int replaceTimers;
+	int replaceRecordings;
 	char serverIp[MAX_IP_LENGTH];
 	int serverPort;
-	int userFilter;
+	int showProgressBar;
+	int userFilterSchedule;
+	int userFilterTimers;
+	int userFilterRecordings;
 	int defaultUser;
 	int addToRemote;
+	int remotePause;
+	int remoteInstant;
+	char serverDir[MaxFileName];
+	int watchUpdate;
 
 	bool Parse(const char *Name, const char *Value);
 	cRemoteTimersSetup& operator=(const cRemoteTimersSetup &Setup);
@@ -31,9 +40,12 @@ extern cRemoteTimersSetup RemoteTimersSetup;
 class cRemoteTimersMenuSetup: public cMenuSetupPage {
 	private:
 		cRemoteTimersSetup setupTmp;
+		const char *lastServerDir;
+		void Set();
 	protected:
 		virtual void Store(void);
 	public:
+		virtual eOSState ProcessKey(eKeys Key);
 		cRemoteTimersMenuSetup();
 		virtual ~cRemoteTimersMenuSetup();
 };

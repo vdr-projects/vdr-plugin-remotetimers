@@ -7,17 +7,19 @@
  */
 
 #include <vdr/plugin.h>
+#include <vdr/videodir.h>
+#include <vdr/interface.h>
+#include "remotetimers.h"
 #include "setup.h"
 #include "menu.h"
+#include "watcher.h"
 #include "i18n.h"
 
-static const char *VERSION        = "0.0.2";
+static const char *VERSION        = "0.1.0";
 static const char *DESCRIPTION    = trNOOP("Edit timers on remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote Timers");
 
 class cPluginRemotetimers : public cPlugin {
-private:
-  // Add any member variables or functions you may need here.
 public:
   cPluginRemotetimers(void);
   virtual ~cPluginRemotetimers();
@@ -66,7 +68,6 @@ bool cPluginRemotetimers::ProcessArgs(int argc, char *argv[])
 
 bool cPluginRemotetimers::Initialize(void)
 {
-  // Initialize any background activities the plugin shall perform.
   return true;
 }
 
@@ -76,12 +77,15 @@ bool cPluginRemotetimers::Start(void)
 #if VDRVERSNUM < 10507
   RegisterI18n(Phrases);
 #endif
+  cUpdateWatcher::GetInstance()->Reconfigure();
   return true;
 }
 
 void cPluginRemotetimers::Stop(void)
 {
   // Stop any background activities the plugin shall perform.
+  cSvdrp::DeleteInstance();
+  cUpdateWatcher::DeleteInstance();
 }
 
 void cPluginRemotetimers::Housekeeping(void)
@@ -104,7 +108,8 @@ cString cPluginRemotetimers::Active(void)
 cOsdObject *cPluginRemotetimers::MainMenuAction(void)
 {
   // Perform the action when selected from the main VDR menu.
-  return new ::PluginRemoteTimers::cMenuMain(tr(MAINMENUENTRY));
+  // Return to our recordings menu after replaying a recording from there
+  return new ::PluginRemoteTimers::cMenuMain(tr(MAINMENUENTRY), ::PluginRemoteTimers::cMenuRecordings::ReplayEnded() ? osRecordings : osUnknown);
 }
 
 cMenuSetupPage *cPluginRemotetimers::SetupMenu(void)
@@ -116,12 +121,65 @@ cMenuSetupPage *cPluginRemotetimers::SetupMenu(void)
 bool cPluginRemotetimers::SetupParse(const char *Name, const char *Value)
 {
   // Parse your own setup parameters and store their values.
-  return RemoteTimersSetup.Parse(Name, Value);;
+  return RemoteTimersSetup.Parse(Name, Value);
 }
+
+#define INSTANT_REC_EPG_LOOKAHEAD 60 // seconds to look into the EPG data for an instant recording
 
 bool cPluginRemotetimers::Service(const char *Id, void *Data)
 {
   // Handle custom service requests from other plugins
+  if (strcmp(Id, "RemoteTimers::InstantRecording-v1.0") == 0) {
+     if (Data) {
+        RemoteTimers_InstantRecording_v1_0 *ir = (RemoteTimers_InstantRecording_v1_0 *) Data;
+	ir->name = ir->fileName = NULL;
+	if (ir->pause ? RemoteTimersSetup.remotePause : RemoteTimersSetup.remoteInstant) {
+	   bool timerAdded = false;
+	   cSvdrp *svdrp = cSvdrp::GetInstance();
+	   if (svdrp->Connect()) {
+	      cRemoteTimer *rt = new cRemoteTimer();
+	      *(cTimer*) rt = *ir->timer;
+
+	      // set file name
+	      cRecording recording(rt, ir->event);
+
+	      PluginRemoteTimers::cMenuTimerItem::UpdateUser(*rt, MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
+	      if (RemoteTimers.New(rt) <= rtsRefresh) {
+		 timerAdded = true;
+	         if (*RemoteTimersSetup.serverDir) {
+	            ir->name = cString::sprintf("%s~%s", RemoteTimersSetup.serverDir, recording.Name());
+
+		    int len = strlen(VideoDirectory);
+		    ir->fileName = recording.FileName();
+		    if (strncmp(ir->fileName, VideoDirectory, strlen(VideoDirectory)) == 0 && ir->fileName[len] == '/') {
+		       char *serverDir = ExchangeChars(strdup(RemoteTimersSetup.serverDir), true);
+		       ir->fileName = cString::sprintf("%s/%s%s", VideoDirectory, serverDir, ir->fileName + len);
+		       free(serverDir);
+		    }
+		    else {
+		       esyslog("RemoteTimers::InstantRecording: Unexpected filename '%s'", *ir->fileName);
+		    }
+	         }
+	         else {
+		    ir->name = recording.Name();
+	            ir->fileName = recording.FileName();
+	         }
+	      }
+	      else {
+	         esyslog("RemoteTimers::InstantRecording: Failed to add new timer");
+	         delete rt;
+	      }
+	      svdrp->Disconnect();
+	   }
+	   if (!timerAdded)
+	      return !Interface->Confirm(trREMOTETIMERS("Remote recording failed. Start local recording?"));
+	}
+	else
+	   return false;
+     }
+     return true;
+  }
+
   cOsdMenu **menu = (cOsdMenu**) Data;
   if (RemoteTimersSetup.replaceSchedule && strcmp(Id, "MainMenuHooksPatch-v1.0::osSchedule") == 0) {
 	  if (menu) 
@@ -131,6 +189,11 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
   if (RemoteTimersSetup.replaceTimers && strcmp(Id, "MainMenuHooksPatch-v1.0::osTimers") == 0) {
 	  if (menu) 
 		  *menu = new ::PluginRemoteTimers::cMenuTimers();
+	  return true;
+  }
+  if (RemoteTimersSetup.replaceRecordings && strcmp(Id, "MainMenuHooksPatch-v1.0::osRecordings") == 0) {
+	  if (menu) 
+		  *menu = new ::PluginRemoteTimers::cMenuRecordings();
 	  return true;
   }
   return false;

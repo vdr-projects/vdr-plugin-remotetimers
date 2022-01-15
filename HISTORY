@@ -1,6 +1,22 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
+2008-10-30: Version 0.1.0
+
+- Plugin now has its own Recordings menu. Features:
+  * filtering by user
+  * editing of recordings (name, priority, lifetime, user)
+  * starting local/remote cutter
+  * replacement for VDR's Recordings menu (requires MainMenuHooks patch)
+- Multiuser support for Timers and Recordings
+- Dedicated setup options for user filter in Schedule, Timers and Recordings
+  menus, either backed by VDR's "Resume ID" or set to a static value
+- Progress bars for "What's on now?" menu (thanks to HolgerR@vdrportal)
+- Patch for server-side instant recordings and paused live view
+- Keep recordings list up-to-date if server's video directory is mounted
+  in a subdirectory of the local video directory
+- Updated Italian translations (thanks to Diego Pierotto)
+
 2008-03-28: Version 0.0.2
 
 - Updated the menu parts copied from VDR to 1.6.0
@@ -10,7 +26,7 @@ VDR Plugin 'remotetimers' Revision History
 - Svdrpservice no longer needs to be loaded before remotetimers
 - Ignore recording flag when verifying that a timer hasn't been modified
 - Removed duplicate check when deleting timer
-- Italian translations (thanks to Gringo <vdr-italian@tiscali.it>)
+- Italian translations (thanks to Diego Pierotto)
 
 2007-03-13: Version 0.0.1
 

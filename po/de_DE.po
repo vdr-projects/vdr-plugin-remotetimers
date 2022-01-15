@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdrdev@schmirler.de>\n"
-"POT-Creation-Date: 2008-02-20 13:06+0100\n"
+"POT-Creation-Date: 2008-10-17 21:56+0200\n"
 "PO-Revision-Date: 2008-02-20 11:48+0100\n"
 "Last-Translator: Frank Schmirler <vdrdev@schmirler.de>\n"
 "Language-Team: <vdr@linuxtv.org>\n"
@@ -37,9 +37,38 @@ msgstr "Timer nimmt gerade auf - auf Server verschieben nicht möglich"
 msgid "RL"
 msgstr "SL"
 
-#, c-format
-msgid "Timers - User %d"
-msgstr "Timer - Benutzer %d"
+msgid "User"
+msgstr "Benutzer"
+
+#. TRANSLATORS: Button displayed instead of "Delete" when there are other users who subscribed to the timer
+msgid "Cancel"
+msgstr "Abmelden"
+
+#. TRANSLATORS: Schedule timer match characters (lower case for partial match): no match (blank), normal (tT)imer, (pP)rivate timer
+msgid " tTpP"
+msgstr " tTpP"
+
+msgid "Edit recording"
+msgstr "Aufnahme editieren"
+
+msgid "Remote editing process started"
+msgstr "Serverseitiger Schnitt gestartet"
+
+msgid "Unable to update user ID"
+msgstr "Fehler beim Ändern der Benutzer-ID"
+
+msgid "Unable to change priority/lifetime"
+msgstr "Fehler beim Ändern der Priorität/Lebensdauer"
+
+msgid "Unable to rename recording"
+msgstr "Fehler beim Umbenennen der Aufnahme"
+
+msgid "Cut"
+msgstr "Schneiden"
+
+#. TRANSLATORS: Button displayed instead of "Delete" when there are other users who didn't watch the recording yet
+msgid "Release"
+msgstr "Freigeben"
 
 msgid "Edit timers on remote VDR"
 msgstr "Timer eines anderen VDR bearbeiten"
@@ -47,14 +76,8 @@ msgstr "Timer eines anderen VDR bearbeiten"
 msgid "Remote Timers"
 msgstr "Server Timer"
 
-msgid "Hide mainmenu entry"
-msgstr "Hauptmenüeintrag verstecken"
-
-msgid "Replace mainmenu \"Schedule\""
-msgstr "Hauptmenü \"Programm\" ersetzen"
-
-msgid "Replace mainmenu \"Timers\""
-msgstr "Hauptmenü \"Timer\" ersetzen"
+msgid "Remote recording failed. Start local recording?"
+msgstr "Serverseitige Aufnahme fehlgeschlagen. Lokal aufnehmen?"
 
 msgid "Server IP"
 msgstr "Server IP"
@@ -62,14 +85,41 @@ msgstr "Server IP"
 msgid "Server port"
 msgstr "Server Port"
 
+msgid "Hide mainmenu entry"
+msgstr "Hauptmenüeintrag verstecken"
+
+#, c-format
+msgid "Replace mainmenu \"%s\""
+msgstr "Hauptmenü \"%s\" ersetzen"
+
 msgid "Defaults for new timers"
 msgstr "Voreinstellungen für neue Timer"
 
-msgid "Settings for \"Timers\" menu"
-msgstr "Einstellungen für Menü \"Timers\""
+msgid "Instant recordings"
+msgstr "Direktaufzeichnungen"
 
-msgid "Filter for user ID"
-msgstr "Anzeige für Benutzer-ID"
+msgid "Pause recordings"
+msgstr "Live-Signal anhalten"
+
+msgid "Settings for menu"
+msgstr "Einstellungen für das Menü"
+
+#, c-format
+msgid "Show progress bar in menu \"%s\""
+msgstr "Fortschrittsanzeige im Menü \"%s\""
+
+#, c-format
+msgid "User ID filter in menu \"%s\""
+msgstr "Benutzer-Filter im Menü \"%s\""
+
+msgid "Remote recordings"
+msgstr "Server Aufzeichnungen"
+
+msgid "Mounted on subdirectory"
+msgstr "Unterverzeichnis"
+
+msgid "Monitor update file"
+msgstr "Update-Datei beobachten"
 
 msgid "Updated remote timers list"
 msgstr "Timerliste wurde neu geladen"
@@ -91,3 +141,16 @@ msgstr "Unerwarteter Fehler - bitte Timer auf Server prüfen"
 
 msgid "Lost SVDRP connection - please check remote timers"
 msgstr "SVDRP-Verbindung verloren - bitte Timer auf Server prüfen"
+
+msgid "Remote cutter already active or no marks defined"
+msgstr "Keine Schnittmarken oder am Server läuft ein Schneidevorgang"
+
+msgid "Recording not found on remote VDR - use local cutter"
+msgstr "Aufnahme auf dem Server nicht gefunden - schneide lokal"
+
+msgid "Unexpected error - unable to start remote cutter"
+msgstr "Unerwarteter Fehler - kann Schnitt auf Server nicht starten"
+
+msgid "Lost SVDRP connection - unable to start remote cutter"
+msgstr "SVDRP-Verbindung verloren - kann Schnitt auf Server nicht starten"
+

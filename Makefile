@@ -48,7 +48,7 @@ DEFINES += -D_GNU_SOURCE -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 
 ### The object files (add further files here):
 
-OBJS = $(PLUGIN).o timers.o menu.o setup.o i18n.o
+OBJS = $(PLUGIN).o svdrp.o menu.o menuitems.o setup.o watcher.o i18n.o
 
 .PHONY: all i18n dist clean
 all: libvdr-$(PLUGIN).so i18n

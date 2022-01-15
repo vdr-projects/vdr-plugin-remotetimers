@@ -10,14 +10,14 @@
 #ifndef _REMOTETIMERS_MENU__H
 #define _REMOTETIMERS_MENU__H
 
-#include "timers.h"
+#include "svdrp.h"
 //#include "ci.h"
 //#include "device.h"
 #include <vdr/epg.h>
 #include <vdr/osdbase.h>
 //#include "dvbplayer.h"
 #include <vdr/menuitems.h>
-//#include "recorder.h"
+#include <vdr/recorder.h>
 #include <vdr/skins.h>
 
 namespace PluginRemoteTimers {
@@ -26,14 +26,16 @@ class cMenuTimerItem : public cOsdItem {
 private:
   cTimer *timer;
   bool remote;
+  int user;
 public:
-  cMenuTimerItem(cTimer *Timer, bool Remote = false);
+  cMenuTimerItem(cTimer *Timer, int User, bool Remote = false);
   virtual int Compare(const cListObject &ListObject) const;
   virtual void Set(void);
+  int User() { return user; }
   bool Remote() { return remote; }
   cTimer *Timer(void) { return timer; }
 
-  static int ParseUser(const cTimer &Timer);
+  static int ParseUser(const cTimer *Timer);
   static void UpdateUser(cTimer &Timer, int User);
   };
 
@@ -67,6 +69,7 @@ private:
   int otherChannel;
   int helpKeys;
   int timerState;
+  int userFilter;
   eOSState Number(void);
   eOSState Record(void);
   eOSState Switch(void);
@@ -91,9 +94,46 @@ public:
   virtual eOSState ProcessKey(eKeys Key);
   };
 
-class cMenuMain : public cOsdMenu {
+class cMenuRecordingItem;
+
+class cMenuRecordings : public cOsdMenu {
+private:
+  static int userFilter;
+  static bool replayEnded;
+
+  char *base;
+  int level;
+  int recordingsState;
+  int helpKeys;
+  bool SetFreeDiskDisplay(bool Force = false);
+  void SetHelpKeys(void);
+  void Set(bool Refresh = false);
+  bool Open(bool OpenSubMenus = false);
+  eOSState Play(void);
+  eOSState Rewind(void);
+  eOSState Delete(void);
+  eOSState Info(void);
+  eOSState Edit(void);
+  //eOSState Commands(eKeys Key = kNone);
+protected:
+  cRecording *GetRecording(cMenuRecordingItem *Item);
 public:
-  cMenuMain(const char *Title);
+  static void SetReplayEnded() { replayEnded = true; }
+  static bool ReplayEnded() { return replayEnded; }
+
+  cMenuRecordings(const char *Base = NULL, int Level = 0, bool OpenSubMenus = false);
+  ~cMenuRecordings();
+  virtual eOSState ProcessKey(eKeys Key);
+  };
+
+class cMenuMain : public cOsdMenu {
+private:
+  static int count;
+public:
+  static bool IsOpen() { return count; }
+
+  cMenuMain(const char *Title, eOSState State);
+  virtual ~cMenuMain();
   virtual eOSState ProcessKey(eKeys Key);
   };
 

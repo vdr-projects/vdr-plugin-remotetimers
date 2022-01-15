@@ -1,7 +1,59 @@
 #include <stdlib.h>
-#include "timers.h"
+#include "svdrp.h"
 #include "setup.h"
 #include "i18n.h"
+
+// cSvdrp -------------------------------------------------
+
+cSvdrp* cSvdrp::svdrp = NULL;
+
+cSvdrp* cSvdrp::GetInstance() {
+	if (!svdrp)
+		svdrp = new cSvdrp(cPluginManager::GetPlugin("svdrpservice"));
+	return svdrp;
+}
+
+void cSvdrp::DeleteInstance() {
+	DELETENULL(svdrp);
+}
+
+cSvdrp::cSvdrp(cPlugin *Service) {
+	service = Service;
+	refcount = 0;
+	conn.handle = -1;
+}
+
+cSvdrp::~cSvdrp() {
+	if (conn.handle >= 0)
+		service->Service("SvdrpConnection-v1.0", &conn);
+}
+
+bool cSvdrp::Connect() {
+	refcount++;
+	if (!service)
+		esyslog("remotetimers: Plugin svdrpservice not available.");
+	else if (conn.handle < 0) {
+		conn.serverIp = RemoteTimersSetup.serverIp;
+		conn.serverPort = RemoteTimersSetup.serverPort;
+		conn.shared = true;
+		service->Service("SvdrpConnection-v1.0", &conn);
+	}
+	return conn.handle >= 0;
+}
+
+void cSvdrp::Disconnect() {
+	refcount--;
+	if (!refcount && conn.handle >= 0) {
+		service->Service("SvdrpConnection-v1.0", &conn);
+		conn.handle = -1;
+	}
+}
+
+unsigned short cSvdrp::Send(SvdrpCommand_v1_0 *Cmd) {
+	Cmd->handle = conn.handle;
+	service->Service("SvdrpCommand-v1.0", Cmd);
+	return Cmd->responseCode;
+}
 
 cRemoteTimers RemoteTimers;
 
@@ -48,39 +100,6 @@ bool cRemoteTimer::Parse(const char *s) {
 
 // cRemoteTimers -------------------------------------------------
 
-cRemoteTimers::cRemoteTimers(): refcount(0) {
-	plugin = NULL;
-	svdrp.handle = -1;
-}
-
-cRemoteTimers::~cRemoteTimers() {
-	if (svdrp.handle >= 0)
-		plugin->Service("SvdrpConnection-v1.0", &svdrp);
-}
-
-bool cRemoteTimers::Connect() {
-	refcount++;
-	if (!plugin)
-		plugin = cPluginManager::GetPlugin("svdrpservice");
-	if (!plugin)
-		esyslog("remotetimers: Plugin svdrpservice not available. Aborting.");
-	else if (svdrp.handle < 0) {
-		svdrp.serverIp = RemoteTimersSetup.serverIp;
-		svdrp.serverPort = RemoteTimersSetup.serverPort;
-		svdrp.shared = true;
-		plugin->Service("SvdrpConnection-v1.0", &svdrp);
-	}
-	return svdrp.handle >= 0;
-}
-
-void cRemoteTimers::Disconnect() {
-	refcount--;
-	if (!refcount && svdrp.handle >= 0) {
-		plugin->Service("SvdrpConnection-v1.0", &svdrp);
-		svdrp.handle = -1;
-	}
-}
-
 cString cRemoteTimers::GetErrorMessage(eRemoteTimersState state) {
 	switch (state) {
 		case rtsRefresh:
@@ -117,8 +136,7 @@ eRemoteTimersState cRemoteTimers::Refresh() {
 	eRemoteTimersState state;
 
 	cmd.command = "LSTT id\r\n";
-	cmd.handle = svdrp.handle;
-	plugin->Service("SvdrpCommand-v1.0", &cmd);
+	cSvdrp::GetInstance()->Send(&cmd);
 
 	Clear();
 	if (cmd.responseCode == 250) {
@@ -297,26 +315,21 @@ unsigned short cRemoteTimers::CmdDELT(cRemoteTimer *Timer) {
 	SvdrpCommand_v1_0 cmd;
 
 	cmd.command = cString::sprintf("DELT %d\r\n", Timer->Id());
-	cmd.handle = svdrp.handle;
-	plugin->Service("SvdrpCommand-v1.0", &cmd);
-	return cmd.responseCode;
+	return cSvdrp::GetInstance()->Send(&cmd);
 }
 
 unsigned short cRemoteTimers::CmdMODT(cRemoteTimer *Timer) {
 	SvdrpCommand_v1_0 cmd;
 
 	cmd.command = cString::sprintf("MODT %d %s", Timer->Id(), *Timer->ToText(true));
-	cmd.handle = svdrp.handle;
-	plugin->Service("SvdrpCommand-v1.0", &cmd);
-	return cmd.responseCode;
+	return cSvdrp::GetInstance()->Send(&cmd);
 }
 
 unsigned short cRemoteTimers::CmdNEWT(cRemoteTimer *Timer, int &Number) {
 	SvdrpCommand_v1_0 cmd;
 
 	cmd.command = cString::sprintf("NEWT %s", *Timer->ToText(true));
-	cmd.handle = svdrp.handle;
-	plugin->Service("SvdrpCommand-v1.0", &cmd);
+	cSvdrp::GetInstance()->Send(&cmd);
 
 	Number = (cmd.responseCode == 250) ? atoi(cmd.reply.First()->Text()) : -1;
 	return cmd.responseCode;
@@ -326,9 +339,87 @@ unsigned short cRemoteTimers::CmdLSTT(int Number, char*& s) {
 	SvdrpCommand_v1_0 cmd;
 
 	cmd.command = cString::sprintf("LSTT id %d\r\n", Number);
-	cmd.handle = svdrp.handle;
-	plugin->Service("SvdrpCommand-v1.0", &cmd);
+	cSvdrp::GetInstance()->Send(&cmd);
 
 	s = (cmd.responseCode == 250) ? strdup(cmd.reply.First()->Text()) : NULL;
 	return cmd.responseCode;
 }
+// cRemoteRecordings -------------------------------------------------
+
+cRemoteRecordings RemoteRecordings;
+
+cString cRemoteRecordings::GetErrorMessage(eRemoteRecordingsState state) {
+	switch (state) {
+		case rrsLocked:
+			return cString(trNOOP("Remote cutter already active or no marks defined"));
+		case rrsNotFound:
+			return cString(trNOOP("Recording not found on remote VDR - use local cutter"));
+		case rrsUnexpected:
+			return cString(trNOOP("Unexpected error - unable to start remote cutter"));
+		case rrsConnError:
+			return cString(trNOOP("Lost SVDRP connection - unable to start remote cutter"));
+		default:
+			return cString();
+	}
+}
+eRemoteRecordingsState cRemoteRecordings::Cut(const char *Date, const char *Title) {
+	unsigned int Number = 0;
+	unsigned short result;
+	eRemoteRecordingsState state;
+
+	result = CmdLSTR(Date, Title, Number);
+	if (result == 250) {
+		if (Number > 0) {
+			result = CmdEDIT(Number);
+			if (result == 250)
+				state = rrsOk;
+			else if (result == 554)
+				state = rrsLocked;
+			else if (result < 100)
+				state = rrsConnError;
+			else
+				state = rrsUnexpected;
+		}
+		else
+			state = rrsNotFound;
+	}
+	else
+		state = (result < 100) ? rrsConnError : rrsNotFound;
+	return state;
+}
+
+unsigned short cRemoteRecordings::CmdLSTR(const char *Date, const char *Title, unsigned int &Number) {
+	SvdrpCommand_v1_0 cmd;
+
+	cmd.command = cString::sprintf("LSTR\r\n");
+	cSvdrp::GetInstance()->Send(&cmd);
+
+	Number = 0;
+	if (cmd.responseCode == 250) {
+		for (cLine *line = cmd.reply.First(); line; line = cmd.reply.Next(line)) {
+			unsigned int recnum;
+			char *rectext;
+			if (sscanf(line->Text(), " %u %a[^\n]", &recnum, &rectext) >= 2) {
+				if (strstr(rectext, Date) == rectext)
+				{
+					char *p = rectext + strlen(Date);
+					if (*p == '*')
+						p++;
+					p = skipspace(p);
+					if (strcmp(Title, p) == 0)
+						Number = recnum;
+				}
+				free(rectext);
+			}
+		}
+	}
+	return cmd.responseCode;
+}
+
+unsigned short cRemoteRecordings::CmdEDIT(unsigned int Number) {
+	SvdrpCommand_v1_0 cmd;
+
+	cmd.command = cString::sprintf("EDIT %d\r\n", Number);
+	return cSvdrp::GetInstance()->Send(&cmd);
+}
+
