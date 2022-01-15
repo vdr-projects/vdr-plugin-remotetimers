@@ -53,7 +53,7 @@ DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 
 ### The object files (add further files here):
 
-OBJS = $(PLUGIN).o svdrp.o menu.o menuitems.o setup.o moverec.o watcher.o
+OBJS = $(PLUGIN).o svdrp.o conflict.o menu.o menuitems.o setup.o moverec.o watcher.o
 
 ### The main target:
 

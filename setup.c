@@ -46,6 +46,8 @@ cRemoteTimersSetup::cRemoteTimersSetup() {
 	useChannelId = 1;
 	swapOkBlue = 0;
 	showProgressBar = 0;
+	for (int i = 0; i < EPGTIME_LENGTH; ++i)
+		epgTime[i] = 0;
 	userFilterSchedule = 0;
 	userFilterTimers = 0;
 	userFilterRecordings = 0;
@@ -71,6 +73,8 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	useChannelId = Setup.useChannelId;
 	swapOkBlue = Setup.swapOkBlue;
 	showProgressBar = Setup.showProgressBar;
+	for (int i = 0; i < EPGTIME_LENGTH; ++i)
+		epgTime[i] = Setup.epgTime[i];
 	userFilterSchedule = Setup.userFilterSchedule;
 	userFilterTimers = Setup.userFilterTimers;
 	userFilterRecordings = Setup.userFilterRecordings;
@@ -106,6 +110,11 @@ bool cRemoteTimersSetup::Parse(const char *Name, const char *Value) {
 		swapOkBlue = atoi(Value);
 	else if (!strcasecmp(Name, "ShowProgressBar"))
 		showProgressBar = atoi(Value);
+	else if (!strncasecmp(Name, "EpgTime", 7)) {
+		int i = atoi(Name + 7);
+		if (0 <= i && i < EPGTIME_LENGTH)
+			epgTime[i] = atoi(Value);
+	}
 	else if (!strcasecmp(Name, "UserFilterSchedule"))
 		userFilterSchedule = atoi(Value);
 	else if (!strcasecmp(Name, "UserFilterTimers"))
@@ -147,6 +156,8 @@ void cRemoteTimersMenuSetup::Store() {
 	SetupStore("UseChannelId", setupTmp.useChannelId);
 	SetupStore("SwapOkBlue", setupTmp.swapOkBlue);
 	SetupStore("ShowProgressBar", setupTmp.showProgressBar);
+	for (int i = 0; i < EPGTIME_LENGTH; ++i)
+		SetupStore(cString::sprintf("EpgTime%d", i), setupTmp.epgTime[i]);
 	SetupStore("UserFilterSchedule", setupTmp.userFilterSchedule);
 	SetupStore("UserFilterTimers", setupTmp.userFilterTimers);
 	SetupStore("UserFilterRecordings", setupTmp.userFilterRecordings);
@@ -204,6 +215,8 @@ void cRemoteTimersMenuSetup::Set() {
 #endif
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("List style"), &setupTmp.skinSchedule, tr("Plugin"), tr("Setup.OSD$Skin")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Show progress bar"), &setupTmp.showProgressBar));
+	for (int i = 0; i < EPGTIME_LENGTH; ++i)
+		Add(new cMenuEditTimeItem(cString::sprintf("%s %d", *cString::sprintf(trREMOTETIMERS("What's on at %s?"), "..."), i + 1), &setupTmp.epgTime[i]));
 	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Key binding of %s/%s"), tr("Key$Ok"), tr("Key$Blue")), &setupTmp.swapOkBlue, swapOkBlueFalse, swapOkBlueTrue));
 	Add(new cMenuEditIntItem(trREMOTETIMERS("User ID filter"), &setupTmp.userFilterSchedule, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
 

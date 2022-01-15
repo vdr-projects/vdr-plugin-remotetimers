@@ -317,6 +317,15 @@ cRemoteTimer *cRemoteTimers::GetTimer(cTimer *Timer)
 	return NULL;
 }
 
+cRemoteTimer *cRemoteTimers::GetTimer(int Id)
+{
+	for (cRemoteTimer *ti = First(); ti; ti = Next(ti)) {
+		if (Id == ti->Id())
+			return ti;
+	}
+	return NULL;
+}
+
 cRemoteTimer *cRemoteTimers::GetMatch(const cEvent *Event, int *Match)
 {
 	cRemoteTimer *t = NULL;

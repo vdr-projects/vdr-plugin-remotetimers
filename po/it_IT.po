@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdrdev@schmirler.de>\n"
-"POT-Creation-Date: 2013-04-13 23:46+0200\n"
+"POT-Creation-Date: 2013-08-04 11:41+0200\n"
 "PO-Revision-Date: 2012-06-07 20:30+0100\n"
 "Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
@@ -28,6 +28,10 @@ msgstr "remoto"
 msgid "User ID"
 msgstr "ID utente"
 
+#, c-format
+msgid "%.10s\tConflict (Recording %d%%)"
+msgstr ""
+
 msgid "Timer is recording - can't move it to server"
 msgstr "Timer in registrazione - impossibile spostarlo sul server"
 
@@ -45,6 +49,10 @@ msgstr "Annulla"
 #. TRANSLATORS: Schedule timer match characters (lower case for partial match): no match (blank), normal (tT)imer, (pP)rivate timer
 msgid " tTpP"
 msgstr " tTpP"
+
+#, c-format
+msgid "What's on at %s?"
+msgstr ""
 
 msgid "Edit recording"
 msgstr "Modifica registrazione"

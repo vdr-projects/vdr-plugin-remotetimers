@@ -62,6 +62,16 @@ struct RemoteTimers_InstantRecording_v1_0 {
 //	cString errorMsg;
 
 /*
+ * RemoteTimers::ForEachConflict-v1.0
+ * Iterates the list of remote timer conflicts.
+ * The service call always returns true.
+ * Data points to a const char* which must be NULL to return the first conflict. Pass the previously returned conflict to get the next one until const char* is NULL.
+ *
+ */
+//in+out
+//	const char* conflict;
+
+/*
  * RemoteTimers::ForEach-v1.0
  * Iterates the list of remote timers.
  * The service call always returns true.
@@ -133,6 +143,24 @@ struct RemoteTimers_Event_v1_0 {
 struct RemoteTimers_Timer_v1_0 {
 //in+out
 	cTimer		*timer;
+//out
+	cString		errorMsg;
+};
+
+/*
+ * RemoteTimers::GetTimerById-v1.0
+ * Get a remote timer by its id (i.e. timer->Index()+1 on remote machine).
+ * The service call always returns true.
+ * Data must point to a RemoteTimers_Timer_v1_1 structure. errorMsg is unused.
+ * NULL is returned as timer if no remote timer exists for the given id locally.
+ * Note that a timer with this id may exist remotely. This can happen if the
+ * remote timer's channel doesn't exist on the local machine.
+ */
+
+struct RemoteTimers_Timer_v1_1 {
+//in+out
+	cTimer		*timer;
+	int		id;
 //out
 	cString		errorMsg;
 };

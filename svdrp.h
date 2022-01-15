@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 Frank Schmirler <vdr@schmirler.de>
+ * Copyright (C) 2008-2013 Frank Schmirler <vdr@schmirler.de>
  *
  * This file is part of VDR Plugin remotetimers.
  *
@@ -80,6 +80,7 @@ class cRemoteTimers: public cList<cRemoteTimer> {
 		eRemoteTimersState New(cRemoteTimer *Timer);
 		cRemoteTimer* GetMatch(const cEvent *Event, int *Match);
 		cRemoteTimer* GetTimer(cTimer *Timer);
+		cRemoteTimer* GetTimer(int Id);
 };
 
 enum eRemoteRecordingsState { rrsOk, rrsLocked, rrsNotFound, rrsUnexpected, rrsConnError };

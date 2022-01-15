@@ -43,9 +43,11 @@ private:
   cTimer *timer;
   bool remote;
   int user;
+  bool conflict;
 public:
   cMenuTimerItem(cTimer *Timer, int User, bool Remote);
   void Update(cTimer *Timer, int User, bool Remote);
+  bool UpdateConflict();
   virtual int Compare(const cListObject &ListObject) const;
   virtual void Set(void);
   int User() { return user; }
@@ -73,6 +75,7 @@ private:
   void SetHelpKeys(void);
   void Set(eRemoteTimersState State = rtsOk);
   void CheckState(eRemoteTimersState State, bool RefreshMsg = true);
+  bool UpdateConflicts(bool Remote);
 public:
   cMenuTimers(const char* ServerIp = NULL, unsigned short ServerPort = 0);
   virtual ~cMenuTimers();
@@ -83,7 +86,9 @@ class cMenuSchedule : public cOsdMenu {
 private:
   cSchedulesLock schedulesLock;
   const cSchedules *schedules;
-  bool now, next;
+  // bool now, next;
+  int whatsOnId; // -1: init, 0..EPGTIME_LENGTH-1: custom,
+                 // EPGTIME_LENGTH: now, EPGTIME_LENGTH+1: next
   int otherChannel;
   int helpKeys;
   int timerState;

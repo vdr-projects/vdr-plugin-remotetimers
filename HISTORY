@@ -1,7 +1,15 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
-2012-06-27: Version 1.0.0
+2013-08-12: Version 1.0.1
+
+- Fixed channel name width in schedule menus (reported by hummel99@vdrportal)
+- Added custom schedule times in addition to "Now" and "Next" as in epgsearch
+  (suggested by hummel99@vdrportal)
+- Show timer conflicts reported by epgsearch in timers menu (suggested by
+  Manfred Heindl)
+
+2013-06-07: Version 1.0.0
 
 - Updated the menu parts copied from VDR to 2.0.2
 - Added service call to open schedule or timers menu

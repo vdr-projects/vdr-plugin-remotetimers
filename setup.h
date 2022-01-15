@@ -26,6 +26,7 @@
 #include "menuitems.h"
 
 #define MAX_IP_LENGTH 16
+#define EPGTIME_LENGTH 4
 
 struct cRemoteTimersSetup {
 	int hideMainMenuEntry;
@@ -37,6 +38,7 @@ struct cRemoteTimersSetup {
 	int useChannelId;
 	int swapOkBlue;
 	int showProgressBar;
+	int epgTime[EPGTIME_LENGTH];
 	int userFilterSchedule;
 	int userFilterTimers;
 	int userFilterRecordings;

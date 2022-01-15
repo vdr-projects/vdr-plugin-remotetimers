@@ -157,6 +157,13 @@ so it will display events with normal and private timers the same way
 - Show progress bar in menu "Schedule"
 Adds progress bars to the "What's on now?" menu.
 
+- What's on at ...? 1-4
+You can define up to 4 custom times which will show up in the "Schedule"
+menu in addition to "Now" and "Next". Hit the "Green" button in the
+"Schedule" menu multiple times to cycle through all views. The special
+value 00:00 disables the custom times. Use 00:01 or 23:59 to get the
+EPG for around midnight.
+
 - Key binding of Ok/Blue
 Vanilla VDR shows the EPG details with "Ok" and switches to the selected
 channel with "Blue". Swap it if you like.
@@ -308,6 +315,12 @@ of the timer (local or remote) and the user IDs it belongs to. Changing
 the location moves the timer from the local to the remote VDR or vice versa.
 Note that you cannot move a running timer. It has to be stopped first. With
 "Red" you can select a folder for the recording.
+
+If a "%" is shown as the second character in the timer list, there's a timer
+conflict. Edit the timer to see the conflicting timers. The conflict check
+relies on the epgsearch plugin. It must be installed on the server to report
+remote timer conflicts and it must be installed on the client to report local
+timer conflicts.
 
 5.4. Recordings menu:
 ---------------------

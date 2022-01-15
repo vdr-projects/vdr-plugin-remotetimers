@@ -25,11 +25,12 @@
 #include "remotetimers.h"
 #include "setup.h"
 #include "menu.h"
+#include "conflict.h"
 #include "moverec.h"
 #include "watcher.h"
 #include "i18n.h"
 
-static const char *VERSION        = "1.0.0";
+static const char *VERSION        = "1.0.1";
 static const char *DESCRIPTION    = trNOOP("Edit timers on remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote Timers");
 
@@ -206,6 +207,8 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
      if (Data) {
         cString *errorMsg = (cString *) Data;
         if (svdrp->Connect() && RemoteTimers.Refresh() == rtsOk) {
+           RemoteConflicts.Update();
+           LocalConflicts.Update();
            cSchedulesLock SchedulesLock;
            const cSchedules *Schedules = cSchedules::Schedules(SchedulesLock);
            if (Schedules) {
@@ -219,6 +222,26 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
         }
         svdrp->Disconnect();
         return **errorMsg == NULL;
+     }
+     return true;
+  }
+
+  if (strcmp(Id, "RemoteTimers::ForEachConflict-v1.0") == 0) {
+     if (Data) {
+        const char *conflict = *(const char **) Data;
+        cTimerConflict *c = RemoteConflicts.First();
+        if (conflict) {
+           // find current conflict
+           while (c && (c->Text() == NULL || strcmp(c->Text(), conflict) != 0))
+                 c = RemoteConflicts.Next(c);
+           // step to next conflict
+           if (c)
+              c = RemoteConflicts.Next(c);
+           // skip conflicts at same time
+           while (c && c->Text() == NULL)
+                 c = RemoteConflicts.Next(c);
+        }
+        *(const char **)Data = c ? c->Text() : NULL;
      }
      return true;
   }
@@ -431,6 +454,14 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
         }
         // should not happen
         esyslog("RemoteTimers::DelTimer service: timer not found");
+     }
+     return true;
+  }
+
+  if (strcmp(Id, "RemoteTimers::GetTimerById-v1.0") == 0) {
+     if (Data) {
+        RemoteTimers_Timer_v1_1 *rtt = (RemoteTimers_Timer_v1_1 *) Data;
+        rtt->timer = RemoteTimers.GetTimer(rtt->id);
      }
      return true;
   }
