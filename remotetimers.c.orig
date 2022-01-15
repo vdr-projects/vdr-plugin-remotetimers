@@ -15,7 +15,7 @@
 #include "watcher.h"
 #include "i18n.h"
 
-static const char *VERSION        = "0.1.4-alpha2";
+static const char *VERSION        = "0.1.4-alpha1";
 static const char *DESCRIPTION    = trNOOP("Edit timers on remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote Timers");
 
@@ -188,18 +188,8 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
   if (strcmp(Id, "RemoteTimers::RefreshTimers-v1.0") == 0) {
      if (Data) {
         cString *errorMsg = (cString *) Data;
-        if (svdrp->Connect() && RemoteTimers.Refresh() == rtsOk) {
-           cSchedulesLock SchedulesLock;
-           const cSchedules *Schedules = cSchedules::Schedules(SchedulesLock);
-           if (Schedules) {
-              for (cRemoteTimer *timer = RemoteTimers.First(); timer; timer = RemoteTimers.Next(timer)) {
-                 timer->SetEventFromSchedule(Schedules); // make sure the event is current
-              }
-           }
-        }
-        else {
+        if (!svdrp->Connect() || RemoteTimers.Refresh() != rtsOk)
            *errorMsg = tr(MSG_UNAVAILABLE);
-        }
         svdrp->Disconnect();
         return **errorMsg == NULL;
      }
@@ -225,66 +215,56 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
      return true;
   }
 
-  if (strcmp(Id, "RemoteTimers::GetTimerByEvent-v1.0") == 0) {
+  if (strcmp(Id, "RemoteTimers::NewTimer-v1.0") == 0) {
      if (Data) {
-        RemoteTimers_Event_v1_0 *data = (RemoteTimers_Event_v1_0 *) Data;
-        for (cRemoteTimer *t = RemoteTimers.First(); t; t = RemoteTimers.Next(t)) {
-           if (t->Event() == data->event) {
-              data->timer = t;
-              return true;
-           }
-        }
-        for (cTimer *t = Timers.First(); t; t = Timers.Next(t)) {
-           if (t->Event() == data->event) {
-              data->timer = t;
-              return true;
-           }
-        }
-	data->timer = NULL;
-        return false;
-     }
-     return true;
-  }
-
-  if (strcmp(Id, "RemoteTimers::NewTimerByEvent-v1.0") == 0) {
-     if (Data) {
-        RemoteTimers_Event_v1_0 *data = (RemoteTimers_Event_v1_0 *) Data;
+        RemoteTimers_Timer_v1_0 *data = (RemoteTimers_Timer_v1_0 *) Data;
         cTimer *t = NULL;
         int tm = tmNone;
         bool isRemote = false;
 
-        // check for timer with user filter
-        data->timer = PluginRemoteTimers::GetBestMatch(data->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &tm, NULL, &isRemote);
+        if (data->event) {
+           // check for timer with user filter
+           t = PluginRemoteTimers::GetBestMatch(data->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &tm, NULL, &isRemote);
 
-        // if timer already exists, we're done
-        if (data->timer && tm == tmFull)
-           return true;
+           // if timer already exists, we're done
+           if (t && tm == tmFull) {
+              // if a timer was given, replace it
+              delete data->timer;
+              data->timer = t;
+              return true;
+           }
+           // check if timer exists without user filter
+           t = PluginRemoteTimers::GetBestMatch(data->event, 0, &tm, NULL, &isRemote);
 
-        // check if timer exists without user filter
-        data->timer = PluginRemoteTimers::GetBestMatch(data->event, 0, &tm, NULL, &isRemote);
-
-        // we need a timer object for this event now
-        t = new cTimer(data->event);
+           // we need a timer object for this event now
+           if (!data->timer)
+              data->timer = new cTimer(data->event);
+        }
+        else if (!data->timer) {
+           esyslog("RemoteTimers::AddTimer service: either event or timer must be given");
+           return false;
+        }
 
         // if there's no match by event, maybe there's a match by time?
-        if (!data->timer || tm != tmFull) {
+        if (!t || tm != tmFull) {
            isRemote = true;
-           data->timer = RemoteTimers.GetTimer(t);
+           t = RemoteTimers.GetTimer(data->timer);
         }
-        if (!data->timer) {
+        if (!t) {
            isRemote = false;
-           data->timer = Timers.GetTimer(t);
+           t = Timers.GetTimer(data->timer);
         }
 
-        if (data->timer) {
+        if (t) {
            // timer exists
-           delete t;
+           delete data->timer;
+           data->timer = t;
            if (tm != tmFull) 
               return true;
            else {
               // matching timer, but it was filtered
-              int user = PluginRemoteTimers::cMenuTimerItem::ParseUser(data->timer);
-              PluginRemoteTimers::cMenuTimerItem::UpdateUser(*data->timer, user | MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
+              int user = PluginRemoteTimers::cMenuTimerItem::ParseUser(t);
+              PluginRemoteTimers::cMenuTimerItem::UpdateUser(*t, user | MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
               if (isRemote) {
                  if (svdrp->Connect()) {
                     eRemoteTimersState state = RemoteTimers.Modify((cRemoteTimer*)t);
@@ -302,46 +282,34 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
            }
         }
         else {
-           RemoteTimers_Timer_v1_0 rt;
-           rt.timer = t;
-           if (!Service("RemoteTimers::NewTimer-v1.0", &rt))
-              data->errorMsg = *rt.errorMsg;
-           data->timer = rt.timer;
-        }
-        return *data->errorMsg == NULL;
-     }
-     return true;
-  }
-
-  if (strcmp(Id, "RemoteTimers::NewTimer-v1.0") == 0) {
-     if (Data) {
-        RemoteTimers_Timer_v1_0 *data = (RemoteTimers_Timer_v1_0 *) Data;
-
-        PluginRemoteTimers::cMenuTimerItem::UpdateUser(*data->timer, MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
-        if (RemoteTimersSetup.addToRemote) {
-           if (svdrp->Connect()) {
-              cRemoteTimer *rt = new cRemoteTimer();
-              *(cTimer*) rt = *data->timer;
-              delete(data->timer);
-              data->timer = rt;
-              eRemoteTimersState state = RemoteTimers.New(rt);
-              if (state > rtsRefresh) {
-                 DELETENULL(data->timer);
-                 data->errorMsg = tr(RemoteTimers.GetErrorMessage(state));
+           // new timer
+           PluginRemoteTimers::cMenuTimerItem::UpdateUser(*data->timer, MASK_FROM_SETUP(RemoteTimersSetup.defaultUser));
+           if (RemoteTimersSetup.addToRemote) {
+              if (svdrp->Connect()) {
+                 cRemoteTimer *rt = new cRemoteTimer();
+                 *(cTimer*) rt = *data->timer;
+                 delete(data->timer);
+                 data->timer = rt;
+                 eRemoteTimersState state = RemoteTimers.New(rt);
+                 if (state > rtsRefresh) {
+                    DELETENULL(data->timer);
+                    data->errorMsg = tr(RemoteTimers.GetErrorMessage(state));
+                    svdrp->Disconnect();
+                    return false;
+                 }
               }
+              else {
+                 DELETENULL(data->timer);
+                 data->errorMsg = tr(MSG_UNAVAILABLE);
+              }
+              svdrp->Disconnect();
            }
            else {
-              DELETENULL(data->timer);
-              data->errorMsg = tr(MSG_UNAVAILABLE);
+              Timers.Add(data->timer);
+              Timers.SetModified();
            }
-           svdrp->Disconnect();
-        }
-        else {
-           Timers.Add(data->timer);
-           Timers.SetModified();
-        }
-        if (data->timer)
            isyslog("timer %s added (active)", *data->timer->ToDescr());
+        }
         return *data->errorMsg == NULL;
      }
      return true;

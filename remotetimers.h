@@ -41,4 +41,12 @@ struct RemoteTimers_Timer_v1_0 {
 	cString		errorMsg;
 };
 
+struct RemoteTimers_Event_v1_0 {
+//in
+        const cEvent    *event;
+//out
+	cTimer		*timer;
+	cString		errorMsg;
+};
+
 #endif //_SERVICE__H
