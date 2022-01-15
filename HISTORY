@@ -1,6 +1,18 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
+2011-10-05: Version 0.1.6
+
+- Adapted handler of SVDRP command LSTR to VDR 1.7.21+ format, including
+  the recording's length.
+- Updated the menu parts copied from VDR to 1.7.21
+- README now mentions the new VDR default port.
+- Fixed RecordingInfo update for TS recordings. The altered lines were
+  appended but re-writing a clean version of the info file failed. So the
+  recording in the menu was not updated, instead an error message appeared.
+- Adapted to API change of VDR 1.7.21 (access recording priority/lifetime)
+- Fixed crash when moving a local timer to the server
+
 2011-04-18: Version 0.1.5
 
 - Always update help keys when changing user filter in recordings menu

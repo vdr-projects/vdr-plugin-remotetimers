@@ -75,11 +75,11 @@ options required, so simply append:
 
   -P remotetimers -P svdrpservice
 
-Since svdrpservice-0.0.4 you can already specify the server IP on the
-commandline. It will then server as the default IP for all plugins using
-svdrpservice:
+Since svdrpservice-0.0.4 you can already specify the server IP and port
+on the commandline. It will then serve as the default for all plugins
+using svdrpservice:
 
-  -P remotetimers -P 'svdrpservice 192.0.2.1'
+  -P remotetimers -P 'svdrpservice 192.0.2.1:6419'
 
 Finally check the file svdrphosts.conf on the remote VDR: The IP of the VDR
 running remotetimers must be listed or otherwise the connection will be
@@ -98,8 +98,9 @@ IP address of SVDRP server. Leave empty or enter "0.0.0.0" if you want
 to use the default IP configured in the svdrpservice plugin.
 
 - Server port
-SVDRP port on server (usually 2001). Enter "0" if you want to use the
-default port from svdrpservice.
+SVDRP port on server. Since VDR 1.7.15 the default port is 6419, before
+it was 2001. The special value 0 uses the default port configured in
+svdrpservice.
 
 - Hide mainmenu entry
 Should be obvious ;-)

@@ -111,7 +111,8 @@ private:
   bool remote;
   int user;
 public:
-  cMenuTimerItem(cTimer *Timer, int User, bool Remote = false);
+  cMenuTimerItem(cTimer *Timer, int User, bool Remote);
+  void Update(cTimer *Timer, int User, bool Remote);
   virtual int Compare(const cListObject &ListObject) const;
   virtual void Set(void);
   int User() { return user; }
@@ -126,7 +127,7 @@ class cMenuTimers : public cOsdMenu {
 private:
   int helpKeys;
   int userFilter;
-  cString currentTimerString;
+  cMenuTimerItem *currentItem;
 
   eOSState Edit(void);
   eOSState New(void);

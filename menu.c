@@ -2,7 +2,7 @@
  * Copyright (C) 2008-2011 Frank Schmirler <vdr@schmirler.de>
  *
  * Major parts copied from VDR's menu.c
- * $Id: menu.c 2.14 2010/01/31 12:43:24 kls Exp $
+ * $Id: menu.c 2.32 2011/08/27 11:05:33 kls Exp $
  * Copyright (C) 2000, 2003, 2006, 2008 Klaus Schmidinger
  *
  * This file is part of VDR Plugin remotetimers.
@@ -44,6 +44,7 @@
 #include <vdr/recording.h>
 //#include "remote.h"
 //#include "shutdown.h"
+//#include "sourceparams.h"
 //#include "sources.h"
 #include <vdr/status.h>
 //#include "themes.h"
@@ -61,6 +62,7 @@ namespace PluginRemoteTimers {
 #define NEWTIMERLIMIT   120 // seconds until the start time of a new timer created from the Schedule menu,
                             // within which it will go directly into the "Edit timer" menu to allow
                             // further parameter settings
+//#define DEFERTIMER       60 // seconds by which a timer is deferred in case of problems
 
 //#define MAXRECORDCONTROLS (MAXDEVICES * MAXRECEIVERS)
 //#define MAXINSTANTRECTIME (24 * 60 - 1) // 23:59 hours
@@ -674,7 +676,7 @@ eOSState cMenuFolder::ProcessKey(eKeys Key)
 class cMenuEditRemoteTimer : public cMenuEditTimer {
 private:
   cTimer *timer;
-  cString *timerString;
+  cMenuTimerItem **timerItem;
 /*
   cTimer data;
   int channel;
@@ -700,11 +702,11 @@ public:
   virtual ~cMenuEditTimer();
 */
   virtual eOSState ProcessKey(eKeys Key);
-  cMenuEditRemoteTimer(cTimer *Timer, cString *TimerString = NULL, bool New = false, bool Remote = false);
+  cMenuEditRemoteTimer(cTimer *Timer, bool Remote, bool New = false, cMenuTimerItem **TimerItem = NULL);
   };
 
-cMenuEditRemoteTimer::cMenuEditRemoteTimer(cTimer *Timer, cString *TimerString, bool New, bool Remote)
-:cMenuEditTimer(Timer, New), timer(Timer), timerString(TimerString)
+cMenuEditRemoteTimer::cMenuEditRemoteTimer(cTimer *Timer, bool Remote, bool New, cMenuTimerItem **TimerItem)
+:cMenuEditTimer(Timer, New), timer(Timer), timerItem(TimerItem)
 {
   remote = tmpRemote = Remote;
   user = tmpUser = New ? MASK_FROM_SETUP(RemoteTimersSetup.defaultUser) : cMenuTimerItem::ParseUser(timer);
@@ -818,6 +820,8 @@ eOSState cMenuEditRemoteTimer::ProcessKey(eKeys Key)
               delete lt;
 #endif
            }
+        if (timerItem && state == osBack)
+           (*timerItem)->Update(timer, tmpUser, tmpRemote);
         }
      else {
         // local timer has been added
@@ -832,11 +836,10 @@ eOSState cMenuEditRemoteTimer::ProcessKey(eKeys Key)
            else
               delete rt;
            }
+        if (timerItem && state == osBack)
+           *timerItem = new cMenuTimerItem(timer, tmpUser, tmpRemote);
         }
      }
-  // store timer string so we can highlight the correct item after a refresh
-  if (state == osBack && timerString)
-     *timerString = timer->ToText();
 #if APIVERSNUM < 10712
   else if (state == osContinue && Key == kRed && !HasSubMenu())
     return AddSubMenu(subMenuFolder = new cMenuFolder(trREMOTETIMERS("Select folder"), &Folders, name));
@@ -862,10 +865,15 @@ public:
 
 cMenuTimerItem::cMenuTimerItem(cTimer *Timer, int User, bool Remote)
 {
+  Update(Timer, User, Remote);
+  Set();
+}
+
+void cMenuTimerItem::Update(cTimer *Timer, int User, bool Remote)
+{
   timer = Timer;
   user = User;
   remote = Remote;
-  Set();
 }
 
 int cMenuTimerItem::Compare(const cListObject &ListObject) const
@@ -894,6 +902,13 @@ void cMenuTimerItem::Set(void)
      strftime(buffer, sizeof(buffer), "%Y%m%d", &tm_r);
      day = buffer;
      }
+#if VDRVERSNUM >= 10714
+  const char *File = Setup.FoldersInTimerMenu ? NULL : strrchr(timer->File(), FOLDERDELIMCHAR);
+  if (File && strcmp(File + 1, TIMERMACRO_TITLE) && strcmp(File + 1, TIMERMACRO_EPISODE))
+     File++;
+  else
+     File = timer->File();
+#endif
   // TRANSLATORS: Indicator for (R)emote or (L)ocal timer in timers list
   const char *RL = trREMOTETIMERS("RL");
   SetText(cString::sprintf("%c\t%c%d\t%s%s%s\t%02d:%02d\t%02d:%02d\t%s",
@@ -907,7 +922,11 @@ void cMenuTimerItem::Set(void)
                     timer->Start() % 100,
                     timer->Stop() / 100,
                     timer->Stop() % 100,
+#if VDRVERSNUM >= 10714
+                    File));
+#else
                     timer->File()));
+#endif
 }
 
 int cMenuTimerItem::ParseUser(const cTimer *Timer) {
@@ -945,6 +964,7 @@ cMenuTimers::cMenuTimers(void)
 {
   helpKeys = -1;
   userFilter = USER_FROM_SETUP(RemoteTimersSetup.userFilterTimers);
+  currentItem = NULL;
   if (!cSvdrp::GetInstance()->Connect())
       Skins.Message(mtWarning, tr(MSG_UNAVAILABLE));
   Set();
@@ -968,7 +988,10 @@ cMenuTimers::~cMenuTimers()
 
 void cMenuTimers::Set(eRemoteTimersState Msg)
 {
+  cString currentTimerString;
   int currentIndex = Current();
+  if (currentIndex >= 0)
+     currentTimerString = ((cMenuTimerItem *) Get(currentIndex))->Timer()->ToText();
   Clear();
   eRemoteTimersState state = cSvdrp::GetInstance()->Offline() ? rtsOk : RemoteTimers.Refresh();
   if (state == rtsOk) {
@@ -984,7 +1007,7 @@ void cMenuTimers::Set(eRemoteTimersState Msg)
       int user = cMenuTimerItem::ParseUser(timer);
       if (userFilter == 0 || user == 0 || (user & USER_MASK(userFilter))) {
           timer->SetEventFromSchedule(); // make sure the event is current
-          Add(new cMenuTimerItem(timer, user));
+          Add(new cMenuTimerItem(timer, user, false));
           }
       }
   Sort();
@@ -996,7 +1019,6 @@ void cMenuTimers::Set(eRemoteTimersState Msg)
         if (strcmp(*currentTimerString, ((cMenuTimerItem *)item)->Timer()->ToText()) == 0)
            currentItem = item;
         }
-     currentTimerString = NULL;
      }
   // make the previous position current
   if (!currentItem)
@@ -1085,14 +1107,16 @@ eOSState cMenuTimers::Edit(void)
   if (HasSubMenu() || Count() == 0)
      return osContinue;
   isyslog("editing timer %s", *CurrentTimer()->ToDescr());
-  return AddSubMenu(new cMenuEditRemoteTimer(CurrentTimer(), &currentTimerString, false, CurrentItem()->Remote()));
+  currentItem = CurrentItem();
+  return AddSubMenu(new cMenuEditRemoteTimer(CurrentTimer(), CurrentItem()->Remote(), false, &currentItem));
 }
 
 eOSState cMenuTimers::New(void)
 {
   if (HasSubMenu())
      return osContinue;
-  return AddSubMenu(new cMenuEditRemoteTimer(new cTimer, &currentTimerString, true, cSvdrp::GetInstance()->Offline() ? false : RemoteTimersSetup.addToRemote));
+  currentItem = NULL;
+  return AddSubMenu(new cMenuEditRemoteTimer(new cTimer, cSvdrp::GetInstance()->Offline() ? false : RemoteTimersSetup.addToRemote, true, &currentItem));
 }
 
 eOSState cMenuTimers::Delete(void)
@@ -1145,7 +1169,9 @@ eOSState cMenuTimers::Info(void)
 
 eOSState cMenuTimers::ProcessKey(eKeys Key)
 {
-  int TimerNumber = HasSubMenu() ? Count() : -1;
+  //int TimerNumber = HasSubMenu() ? Count() : -1;
+  // cMenuTimers::New() sets currentItem to NULL
+  int TimerNumber = HasSubMenu() && !currentItem ? Count() : -1;
   eOSState state = cOsdMenu::ProcessKey(Key);
 
   if (state == osUnknown) {
@@ -1169,9 +1195,10 @@ eOSState cMenuTimers::ProcessKey(eKeys Key)
        default: break;
        }
      }
-  if (TimerNumber >= 0 && !HasSubMenu()) {
   //if (TimerNumber >= 0 && !HasSubMenu() && Timers.Get(TimerNumber)) {
+  if (TimerNumber >= 0 && !HasSubMenu() && currentItem) {
      // a newly created timer was confirmed with Ok
+     Add(currentItem, true);
      //Add(new cMenuTimerItem(Timers.Get(TimerNumber)), true);
      Set();
      Display();
@@ -1210,7 +1237,7 @@ void cMenuEvent::Display(void)
 
 eOSState cMenuEvent::ProcessKey(eKeys Key)
 {
-  switch (Key) {
+  switch (int(Key)) {
     case kUp|k_Repeat:
     case kUp:
     case kDown|k_Repeat:
@@ -1444,7 +1471,7 @@ eOSState cMenuWhatsOn::Record(void)
         //cTimer *timer = Timers.GetMatch(item->event, &tm);
         cTimer *timer = GetBestMatch(item->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &tm, NULL, &isRemote);
         if (timer)
-           return AddSubMenu(new cMenuEditRemoteTimer(timer, NULL, false, isRemote));
+           return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
         }
 
      tm = tmNone;
@@ -1463,7 +1490,7 @@ eOSState cMenuWhatsOn::Record(void)
         delete timer;
         timer = t;
 	if (tm != tmFull) 
-           return AddSubMenu(new cMenuEditRemoteTimer(timer, NULL, false, isRemote));
+           return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
 	else {
            // matching timer, but it was filtered
 	   int user = cMenuTimerItem::ParseUser(t);
@@ -1506,7 +1533,7 @@ eOSState cMenuWhatsOn::Record(void)
         Timers.SetModified();
         isyslog("timer %s added (active)", *timer->ToDescr());
         if (timer->Matches(0, false, NEWTIMERLIMIT))
-           return AddSubMenu(new cMenuEditRemoteTimer(timer, NULL, false, isRemote));
+           return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
         if (HasSubMenu())
            CloseSubMenu();
         if (Update())
@@ -1758,7 +1785,7 @@ eOSState cMenuSchedule::Record(void)
         //cTimer *timer = Timers.GetMatch(item->event, &tm);
         cTimer *timer = GetBestMatch(item->event, MASK_FROM_SETUP(RemoteTimersSetup.userFilterSchedule), &tm, NULL, &isRemote);
         if (timer)
-           return AddSubMenu(new cMenuEditRemoteTimer(timer, NULL, false, isRemote));
+           return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
         }
 
      tm = tmNone;
@@ -1777,7 +1804,7 @@ eOSState cMenuSchedule::Record(void)
         delete timer;
         timer = t;
 	if (tm != tmFull)
-           return AddSubMenu(new cMenuEditRemoteTimer(timer, NULL, false, isRemote));
+           return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
 	else {
 	   // matching timer, but it was filtered
 	   int user = cMenuTimerItem::ParseUser(t);
@@ -1820,7 +1847,7 @@ eOSState cMenuSchedule::Record(void)
         Timers.SetModified();
         isyslog("timer %s added (active)", *timer->ToDescr());
         if (timer->Matches(0, false, NEWTIMERLIMIT))
-           return AddSubMenu(new cMenuEditRemoteTimer(timer, NULL, false, isRemote));
+           return AddSubMenu(new cMenuEditRemoteTimer(timer, isRemote));
         if (HasSubMenu())
            CloseSubMenu();
         if (Update())
@@ -1902,6 +1929,7 @@ eOSState cMenuSchedule::ProcessKey(eKeys Key)
   return state;
 }
 
+#if VDRVERSNUM < 10713
 // --- cMenuCommands ---------------------------------------------------------
 
 class cMenuCommands : public cOsdMenu {
@@ -2030,8 +2058,14 @@ eOSState cMenuCommands::Execute(void)
               int l = 0;
               int c;
               while ((c = fgetc(p)) != EOF) {
-                    if (l % 20 == 0)
-                       result = (char *)realloc(result, l + 21);
+                    if (l % 20 == 0) {
+                       if (char *NewBuffer = (char *)realloc(result, l + 21))
+                          result = NewBuffer;
+                       else {
+                          esyslog("ERROR: out of memory");
+                          break;
+                          }
+                       }
                     result[l++] = char(c);
                     }
               if (result)
@@ -2067,6 +2101,7 @@ eOSState cMenuCommands::ProcessKey(eKeys Key)
      }
   return state;
 }
+#endif
 
 // --- cMenuRecording --------------------------------------------------------
 
@@ -2102,7 +2137,7 @@ void cMenuRecording::Display(void)
 
 eOSState cMenuRecording::ProcessKey(eKeys Key)
 {
-  switch (Key) {
+  switch (int(Key)) {
     case kUp|k_Repeat:
     case kUp:
     case kDown|k_Repeat:
@@ -2168,8 +2203,13 @@ cMenuEditRecording::cMenuEditRecording(const cRecording *Recording)
 :cOsdMenu(trREMOTETIMERS("Edit recording"), 12)
 {
   // Must be locked against Recordings
+#if VDRVERSNUM < 10721
   priority = Recording->priority;
   lifetime = Recording->lifetime;
+#else
+  priority = Recording->Priority();
+  lifetime = Recording->Lifetime();
+#endif
   strn0cpy(name, Recording->Name(), sizeof(name));
   tmpUser = user = ParseUser(Recording->Info()->Aux());
   fileName = Recording->FileName();
@@ -2275,14 +2315,18 @@ bool cMenuEditRecording::ModifyInfo(cRecording *Recording, const char *Info)
   cString InfoFileName = cString::sprintf(Recording->IsPesRecording() ? "%s/" INFOFILE_PES : "%s/" INFOFILE_TS, Recording->FileName());
   FILE *f = fopen(InfoFileName, "a");
   if (f) {
-     fprintf(f, "%s\n", Info);
-     fclose(f);
-     // Casting const away is nasty, but what the heck?
-     // The Recordings thread is locked and the object is going to be deleted anyway.
-     if (((cRecordingInfo *)Recording->Info())->Read() && Recording->WriteInfo())
-        return true;
-     esyslog("remotetimers: Failed to update '%s'", *InfoFileName);
-  }
+     if (fprintf(f, "%s\n", Info) > 0) {
+        if (fclose(f) == 0) {
+           cRecording rec(Recording->FileName());
+           // as of VDR 1.7.21 WriteInfo() always returns true
+           return rec.WriteInfo();
+           }
+        f = NULL;
+        }
+     esyslog("remotetimers: Failed to update '%s': %m", *InfoFileName);
+     if (f)
+        fclose(f);
+     }
   else
      esyslog("remotetimers: writing to '%s' failed: %m", *InfoFileName);
 #else
@@ -2331,7 +2375,11 @@ bool cMenuEditRecording::UpdatePrioLife(cRecording *Recording)
      char *newName = strdup(Recording->FileName());
      size_t len = strlen(newName);
      cString freeStr(newName, true);
+#if VDRVERSNUM < 10721
      cString oldData = cString::sprintf(PRIO_LIFE_FORMAT, Recording->priority, Recording->lifetime);
+#else
+     cString oldData = cString::sprintf(PRIO_LIFE_FORMAT, Recording->Priority(), Recording->Lifetime());
+#endif
      cString newData = cString::sprintf(PRIO_LIFE_FORMAT, priority, lifetime);
      size_t lenReplace = strlen(oldData);
      if (lenReplace < len) {
@@ -2454,7 +2502,11 @@ eOSState cMenuEditRecording::ProcessKey(eKeys Key)
                            bool replace = false;
                            if (user != tmpUser)
                               replace |= UpdateUser(recording, tmpUser);
+#if VDRVERSNUM < 10721
                            if (priority != recording->priority || lifetime != recording->lifetime)
+#else
+                           if (priority != recording->Priority() || lifetime != recording->Lifetime())
+#endif
                               replace |= UpdatePrioLife(recording);
                            if (replace) {
                               Recordings.Del(recording);
@@ -2554,7 +2606,11 @@ void cMenuRecordingItem::IncrementCounter(bool New)
   totalEntries++;
   if (New)
      newEntries++;
+#if VDRVERSNUM < 10721
   SetText(cString::sprintf("%d\t%d\t%s", totalEntries, newEntries, name));
+#else
+  SetText(cString::sprintf("%d\t\t%d\t%s", totalEntries, newEntries, name));
+#endif
 }
 
 // --- cMenuRecordings -------------------------------------------------------
@@ -2563,7 +2619,11 @@ int cMenuRecordings::userFilter = 0;
 bool cMenuRecordings::replayEnded = false;
 
 cMenuRecordings::cMenuRecordings(const char *Base, int Level, bool OpenSubMenus)
+#if VDRVERSNUM < 10721
 :cOsdMenu(Base ? Base : tr("Recordings"), 9, 7)
+#else
+:cOsdMenu(Base ? Base : tr("Recordings"), 9, 6, 6)
+#endif
 {
   base = Base ? strdup(Base) : NULL;
   level = ::Setup.RecordingDirs ? Level : -1;
@@ -2659,7 +2719,7 @@ void cMenuRecordings::Set(bool Refresh)
          continue;
       if (!base || (strstr(recording->Name(), base) == recording->Name() && recording->Name()[strlen(base)] == FOLDERDELIMCHAR)) {
          cMenuRecordingItem *Item = new cMenuRecordingItem(recording, level, user);
-         if (*Item->Text() && (!LastItem || strcmp(Item->Text(), LastItemText) != 0)) {
+         if (*Item->Text() && (!Item->IsDirectory() || (!LastItem || !LastItem->IsDirectory() || strcmp(Item->Text(), LastItemText) != 0))) {
             Add(Item);
             LastItem = Item;
             free(LastItemText);

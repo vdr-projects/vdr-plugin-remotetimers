@@ -20,6 +20,7 @@
  */
 
 #include <stdlib.h>
+#include <ctype.h>
 #include "svdrp.h"
 #include "setup.h"
 #include "i18n.h"
@@ -424,6 +425,13 @@ unsigned short cRemoteRecordings::CmdLSTR(const char *Date, const char *Title, u
 				if (strstr(rectext, Date) == rectext)
 				{
 					char *p = rectext + strlen(Date);
+
+					int dummy = 0;
+					int len = 0;
+					// strip recording length (VDR 1.7.21+)
+					if (isspace(*p) && !isspace(*(p+1)) && sscanf(p, " %*d:%2d%n", &dummy, &len) > 0)
+						p += len;
+					// new indicator
 					if (*p == '*')
 						p++;
 					p = skipspace(p);

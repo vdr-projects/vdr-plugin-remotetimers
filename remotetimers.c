@@ -29,7 +29,7 @@
 #include "watcher.h"
 #include "i18n.h"
 
-static const char *VERSION        = "0.1.5";
+static const char *VERSION        = "0.1.6";
 static const char *DESCRIPTION    = trNOOP("Edit timers on remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote Timers");
 
