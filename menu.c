@@ -1,14 +1,31 @@
 /*
- * menu.c: The actual menu implementations
+ * Copyright (C) 2008-2011 Frank Schmirler <vdr@schmirler.de>
  *
- * See the main source file 'vdr.c' for copyright information and
- * how to reach the author.
- *
+ * Major parts copied from VDR's menu.c
  * $Id: menu.c 2.14 2010/01/31 12:43:24 kls Exp $
+ * Copyright (C) 2000, 2003, 2006, 2008 Klaus Schmidinger
+ *
+ * This file is part of VDR Plugin remotetimers.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
 #include "menu.h"
 #include "setup.h"
+#include "moverec.h"
 #include "i18n.h"
 #include <vdr/menu.h>
 #include "menuitems.h"
@@ -1574,6 +1591,8 @@ cMenuSchedule::cMenuSchedule(void)
   userFilter = USER_FROM_SETUP(RemoteTimersSetup.userFilterSchedule);
   Timers.Modified(timerState);
   cMenuScheduleItem::SetSortMode(cMenuScheduleItem::ssmAllThis);
+  if (!cSvdrp::GetInstance()->Connect() || RemoteTimers.Refresh() != rtsOk)
+     Skins.Message(mtWarning, tr(MSG_UNAVAILABLE));
   cChannel *channel = Channels.GetByNumber(cDevice::CurrentChannel());
   if (channel) {
      cMenuWhatsOn::SetCurrentChannel(channel->Number());
@@ -1581,8 +1600,6 @@ cMenuSchedule::cMenuSchedule(void)
      PrepareScheduleAllThis(NULL, channel);
      SetHelpKeys();
      }
-  if (!cSvdrp::GetInstance()->Connect() || RemoteTimers.Refresh() != rtsOk)
-     Skins.Message(mtWarning, tr(MSG_UNAVAILABLE));
 }
 
 cMenuSchedule::~cMenuSchedule()
@@ -2135,7 +2152,7 @@ private:
   eOSState Cut(void);
   eOSState Info(void);
   void SetHelpKeys(void);
-  bool Rename(const char *Old, const char *New);
+  bool Rename(const cRecording *Recording, const char *NewName);
   bool UpdatePrioLife(cRecording *Recording);
   bool UpdateName(cRecording *Recording);
   static bool ModifyInfo(cRecording *Recording, const char *buffer);
@@ -2192,7 +2209,11 @@ eOSState cMenuEditRecording::Cut()
   cRecording *recording = Recordings.GetByName(*fileName);
   if (recording) {
      cMarks Marks;
+#if VDRVERSNUM >= 10703
+     if (Marks.Load(recording->FileName(), recording->FramesPerSecond(), recording->IsPesRecording()) && Marks.Count()) {
+#else
      if (Marks.Load(recording->FileName()) && Marks.Count()) {
+#endif
         const char *name = recording->Name();
         int len = strlen(RemoteTimersSetup.serverDir);
         bool remote = len == 0 || (strstr(name, RemoteTimersSetup.serverDir) == name && name[len] == FOLDERDELIMCHAR);
@@ -2307,7 +2328,7 @@ bool cMenuEditRecording::UpdatePrioLife(cRecording *Recording)
            char *p = newName + len - lenReplace;
            if (strcmp(p, oldData) == 0) {
               strncpy(p, newData, lenReplace);
-              if (Rename(Recording->FileName(), newName)) {
+              if (Rename(Recording, newName)) {
                  fileName = newName;
                  return true;
                  }
@@ -2334,21 +2355,22 @@ bool cMenuEditRecording::UpdateName(cRecording *Recording)
      return false;
   }
 
-  char *oldFileName = strdup(Recording->FileName());
-  char *p = strrchr(oldFileName, '/');
-  cString freeStr(oldFileName, true);
+  const char *p = strrchr(Recording->FileName(), '/');
   if (p) {
      // cMenuEditStrItem strips trailing whitespace characters
-     // If name ends with FOLDERDELIMCHAR assume there was a space
+     // If name ends with FOLDERDELIMCHAR, assume there was a space
      if (len < MaxFileName - 1 && name[len - 1] == FOLDERDELIMCHAR) {
          name[len++] = ' ';
          name[len] = '\0';
      }
-     cString newFileName(ExchangeChars(strdup(name), true), true);
-dsyslog("old: %s new: %s / %s - %s", oldFileName, VideoDirectory, *newFileName, p);
-     newFileName = cString::sprintf("%s/%s%s", VideoDirectory, *newFileName, p);
-     if (Rename(oldFileName, newFileName)) {
-	fileName = newFileName;
+     cString newName(ExchangeChars(strdup(name), true), true);
+     newName = cString::sprintf("%s/%s%s", VideoDirectory, *newName, p);
+     bool wasMoving = cMoveRec::IsMoving();
+     if (Rename(Recording, newName)) {
+        // keep old name when moving recording in background
+        if (cMoveRec::IsMoving() && !wasMoving)
+           return false;
+	fileName = newName;
         return true;
         }
      }
@@ -2356,16 +2378,23 @@ dsyslog("old: %s new: %s / %s - %s", oldFileName, VideoDirectory, *newFileName, 
   return false;
 }
 
-bool cMenuEditRecording::Rename(const char *Old, const char *New) {
-  if (access(New, F_OK) == 0) {
-     esyslog("remotetimers: not renaming '%s' to '%s'. File exists", Old, New);
+bool cMenuEditRecording::Rename(const cRecording *Recording, const char *NewName) {
+  const char *oldName = Recording->FileName();
+  if (access(NewName, F_OK) == 0) {
+     esyslog("remotetimers: not renaming '%s' to '%s'. File exists", oldName, NewName);
      return false;
      }
   // false makes sure that the actual target directory itself is not created
-  if (!MakeDirs(New, false))
+  if (!MakeDirs(NewName, false))
      return false;
-  if (rename(Old, New) != 0) {
-     esyslog("remotetimers: error renaming '%s' to '%s': %m", Old, New);
+  if (rename(oldName, NewName) != 0) {
+     if (errno == EXDEV) {
+        if (Interface->Confirm(trREMOTETIMERS("Move to other filesystem in background?"))) {
+           return cMoveRec::GetInstance()->Move(Recording, NewName);
+           }
+        }
+     else
+        esyslog("remotetimers: error renaming '%s' to '%s': %m", oldName, NewName);
      return false;
      }
   return true;
@@ -2416,11 +2445,17 @@ eOSState cMenuEditRecording::ProcessKey(eKeys Key)
                               replace |= UpdateUser(recording, tmpUser);
                            if (priority != recording->priority || lifetime != recording->lifetime)
                               replace |= UpdatePrioLife(recording);
-                           if (strcmp(name, recording->Name()) != 0)
-                              replace |= UpdateName(recording);
                            if (replace) {
                               Recordings.Del(recording);
                               Recordings.AddByName(*fileName);
+                              recording = Recordings.GetByName(*fileName);
+                              }
+                           }
+                        if (recording) {
+                           if (strcmp(name, recording->Name()) != 0)
+                              if (UpdateName(recording)) {
+                                 Recordings.Del(recording);
+                                 Recordings.AddByName(*fileName);
                               }
                            }
                         else
@@ -2874,6 +2909,8 @@ cMenuMain::cMenuMain(const char *Title, eOSState State)
   Add(new cOsdItem(hk(tr("Schedule")),   osUser1));
   Add(new cOsdItem(hk(tr("Timers")),     osUser2));
   Add(new cOsdItem(hk(tr("Recordings")), osUser3));
+  if (cMoveRec::IsMoving())
+     Add(new cOsdItem(hk(trREMOTETIMERS("Abort moving recording")), osUser4));
   if (State == osRecordings)
      AddSubMenu(new cMenuRecordings(NULL, 0, true));
 }
@@ -2891,6 +2928,11 @@ eOSState cMenuMain::ProcessKey(eKeys Key)
     case osUser1:      return AddSubMenu(new cMenuSchedule);
     case osUser2:      return AddSubMenu(new cMenuTimers);
     case osUser3:      return AddSubMenu(new cMenuRecordings);
+#if VDRVERSNUM >= 10404
+    case osUser4:      cMoveRec::Abort(-1); return osBack;
+#else
+    case osUser4:      cMoveRec::Abort(10); return osBack;
+#endif
     default:           return state;
     }
 }

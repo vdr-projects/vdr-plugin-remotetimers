@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2008-2011 Frank Schmirler <vdr@schmirler.de>
+ *
+ * This file is part of VDR Plugin remotetimers.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ */
+
 #include "i18n.h"
 
 #if VDRVERSNUM < 10507
@@ -7,6 +28,41 @@ const tI18nPhrase Phrases[] = {
     " tTpP",
     "",
     " tTpP",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Abort moving recording",
+    "Aufzeichnung verschieben abbrechen",
+    "",
+    "Spostamento registrazione annullato",
     "",
     "",
     "",
@@ -354,7 +410,7 @@ const tI18nPhrase Phrases[] = {
 #endif
   },
   { "Edit recording",
-    "Aufnahme editieren",
+    "Aufzeichnung editieren",
     "",
     "Modifica registrazione",
     "",
@@ -392,6 +448,76 @@ const tI18nPhrase Phrases[] = {
     "Timer eines anderen VDR bearbeiten",
     "",
     "Modifica timer di VDR remoto",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Failed to move recording!",
+    "Fehler beim Verschieben der Aufzeichnung!",
+    "",
+    "Impossibile spostare la registrazione!",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Finished moving recording",
+    "Aufzeichnung verschoben",
+    "",
+    "Spostamento registrazione completato",
     "",
     "",
     "",
@@ -738,6 +864,111 @@ const tI18nPhrase Phrases[] = {
     "",
 #endif
   },
+  { "Move recording bandwidth limit (Mbit/s)",
+    "Bandbreite Aufzeichnung verschieben (Mbit/s)",
+    "",
+    "Limite banda spostamento registrazione (Mbit/s)",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Move to other filesystem in background?",
+    "Im Hintergrund auf anderes Dateisystem verschieben?",
+    "",
+    "Spostare verso un altro filesystem in sottofondo?",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Moving recording",
+    "Verschiebe Aufzeichnung",
+    "",
+    "Spostamento registrazione",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
   { "New folder",
     "Neues Verzeichnis",
     "",
@@ -844,7 +1075,7 @@ const tI18nPhrase Phrases[] = {
 #endif
   },
   { "Recording not found on remote VDR - use local cutter",
-    "Aufnahme auf dem Server nicht gefunden - schneide lokal",
+    "Aufzeichnung auf dem Server nicht gefunden - schneide lokal",
     "",
     "Registrazione non trovata su VDR remoto - usa taglio locale",
     "",
@@ -1019,7 +1250,7 @@ const tI18nPhrase Phrases[] = {
 #endif
   },
   { "Remote recording failed. Start local recording?",
-    "Serverseitige Aufnahme fehlgeschlagen. Lokal aufnehmen?",
+    "Serverseitige Aufzeichnung fehlgeschlagen. Lokal aufnehmen?",
     "",
     "Registrazione remota fallita. Avviare registrazione locale?",
     "",
@@ -1057,41 +1288,6 @@ const tI18nPhrase Phrases[] = {
     "Server Aufzeichnungen",
     "",
     "Registrazioni remote",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-#if VDRVERSNUM >= 10302
-    "",
-#endif
-#if VDRVERSNUM >= 10307
-    "",
-#endif
-#if VDRVERSNUM >= 10313
-    "",
-#endif
-#if VDRVERSNUM >= 10316
-    "",
-#endif
-#if VDRVERSNUM >= 10342
-    "",
-#endif
-#if VDRVERSNUM >= 10502
-    "",
-#endif
-  },
-  { "Remote timers not available",
-    "Timer des Servers nicht verfügbar",
-    "",
-    "Timer remoti non disponibili",
     "",
     "",
     "",
@@ -1579,7 +1775,7 @@ const tI18nPhrase Phrases[] = {
 #endif
   },
   { "Unable to rename recording",
-    "Fehler beim Umbenennen der Aufnahme",
+    "Fehler beim Umbenennen der Aufzeichnung",
     "",
     "Impossibile rinominare registrazione",
     "",
@@ -1858,6 +2054,41 @@ const tI18nPhrase Phrases[] = {
     "",
 #endif
   },
+  { "from svdrpservice",
+    "aus svdrpservice",
+    "",
+    "da svdrpservice",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
   { "local",
     "lokal",
     "",
@@ -1897,6 +2128,41 @@ const tI18nPhrase Phrases[] = {
     "Server",
     "",
     "remoto",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "unlimited",
+    "unbegrenzt",
+    "",
+    "illimitato",
     "",
     "",
     "",

@@ -1,7 +1,24 @@
 /*
  * remotetimers.h: Public interface of the plugin's services
  *
- * See the README file for copyright information and how to reach the author.
+ * Copyright (C) 2008-2011 Frank Schmirler <vdr@schmirler.de>
+ *
+ * This file is part of VDR Plugin remotetimers.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
 #ifndef _SERVICE__H
@@ -11,6 +28,20 @@
 #include <vdr/timer.h>
 #include <vdr/epg.h>
 #endif
+
+/*
+ * If the Data argument is NULL, all service calls return true.
+ * Otherwise the return value indicates success or failure of the service call.
+ *
+ * The service calls are not thread safe and must be called from the VDR main loop.
+ */
+
+/*
+ * RemoteTimers::InstantRecording-v1.0
+ * Start an instant recording or pause live TV. VDR needs to be patched to support this.
+ * The service returns false if a local timer should be used. An error occured if true is returned but the out parameters name and fileName are NULL.
+ * Data points to the following structure where pause indicates if it is an instant recording or an attempt to pause live TV.
+ */
 
 struct RemoteTimers_InstantRecording_v1_0 {
 //in
@@ -22,6 +53,37 @@ struct RemoteTimers_InstantRecording_v1_0 {
 	cString		fileName;
 };
 
+/* 
+ * RemoteTimers::RefreshTimers-v1.0
+ * Fetch timer list from remote VDR. You must call this service before you can use one of the service calls below.
+ * Data points to a cString which in case of failure (service call returns false) contains an error message.
+ */
+
+//out
+//	cString errorMsg;
+
+/*
+ * RemoteTimers::ForEach-v1.0
+ * Iterates the list of remote timers.
+ * The service call always returns true.
+ * Data points to a cTimer* which must be NULL to return the first timer. Pass the previously returned timer to get the next one until cTimer* is NULL.
+ *
+ * RemoteTimers::GetTimer-v1.0
+ * Test if the timer exists as either a remote or a local timer. 
+ * The service call always returns true.
+ * Data points to a cTimer* which points to the timer you are looking for. If found, cTimer* will point to the timer, otherwise it will be NULL.
+ */
+
+//in+out
+//	cTimer* timer;
+
+/*
+ * RemoteTimers::GetMatch-v1.0
+ * Find the remote or local timer which matches the event best.
+ * The service call always returns true.
+ * Data points to the following structure:
+ */
+
 struct RemoteTimers_GetMatch_v1_0 {
 //in
 	const cEvent	*event;
@@ -32,24 +94,47 @@ struct RemoteTimers_GetMatch_v1_0 {
 	bool		isRemote;
 };
 
-struct RemoteTimers_ForEach_v1_0 {
-//in+out
-	bool		remote;
-	cTimer		*timer;
-};
-
-struct RemoteTimers_Timer_v1_0 {
-//in+out
-	cTimer		*timer;
-//out
-	cString		errorMsg;
-};
+/*
+ * RemoteTimers::GetTimerByEvent-v1.0
+ * Find the remote or local timer matching the event.
+ * If no timer matches, the service call returns false.
+ * Data points to a RemoteTimers_Event_v1_0 struct.
+ *
+ * RemoteTimers::NewTimerByEvent-v1.0
+ * Add a new timer for an event.
+ * In case of an error, the service call returns false and the structure includes an error message.
+ * Data points to a RemoteTimers_Event_v1_0 struct.
+ */
 
 struct RemoteTimers_Event_v1_0 {
 //in
         const cEvent    *event;
 //out
 	cTimer		*timer;
+	cString		errorMsg;
+};
+
+/*
+ * RemoteTimers::NewTimer-v1.0
+ * Add a new timer.
+ * In case of an error, the service call returns false and the structure includes an error message.
+ * Data points to a RemoteTimers_Timer_v1_0 struct.
+ *
+ * RemoteTimers::ModTimer-v1.0
+ * Change an existing timer.
+ * In case of an error, the service call returns false and the structure includes an error message.
+ * Data points to a RemoteTimers_Timer_v1_0 struct.
+ *
+ * RemoteTimers::DelTimer-v1.0
+ * Delete an existing timer.
+ * In case of an error, the service call returns false and the structure includes an error message.
+ * Data points to a RemoteTimers_Timer_v1_0 struct.
+ */
+
+struct RemoteTimers_Timer_v1_0 {
+//in+out
+	cTimer		*timer;
+//out
 	cString		errorMsg;
 };
 

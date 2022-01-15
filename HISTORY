@@ -1,8 +1,16 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
-2010-10-xx: Version 0.1.4
+2011-03-01: Version 0.1.4
 
+- Improved German translations
+- Updated Italian translations (thanks to Diego Pierotto)
+- Default server port is now 0, i.e. taken from svdrpservice
+- Fixed missing timer markers when opening the Schedule for the first time
+- Implemented moving recording to a different filesystem with optional
+  bandwidth throttle
+- Cutting from menu failed for PES recordings since VDR 1.7.3 due to missing
+  parameters to cMarks::Load
 - Moving recordings into folders named ' ' failed or caused unexpected
   results as VDR's text input control strips trailing whitespace. Now
   folder ' ' is assumed when renaming a recording and the name ends with

@@ -7,16 +7,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdrdev@schmirler.de>\n"
-"POT-Creation-Date: 2010-02-14 17:48+0100\n"
-"PO-Revision-Date: 2010-02-22 00:04+0100\n"
+"POT-Creation-Date: 2011-03-01 12:21+0100\n"
+"PO-Revision-Date: 2011-02-28 23:30+0100\n"
 "Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-15\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-msgid "Remote timers not available"
-msgstr "Timer remoti non disponibili"
 
 msgid "Edit folder"
 msgstr "Modifica cartella"
@@ -94,6 +91,9 @@ msgstr "Impossibile aggiornare priorità/scadenza"
 msgid "Unable to rename recording"
 msgstr "Impossibile rinominare registrazione"
 
+msgid "Move to other filesystem in background?"
+msgstr "Spostare verso un altro filesystem in sottofondo?"
+
 msgid "Cut"
 msgstr "Taglia"
 
@@ -101,11 +101,23 @@ msgstr "Taglia"
 msgid "Release"
 msgstr "Rilascia"
 
+msgid "Abort moving recording"
+msgstr "Spostamento registrazione annullato"
+
+msgid "Finished moving recording"
+msgstr "Spostamento registrazione completato"
+
+msgid "Failed to move recording!"
+msgstr "Impossibile spostare la registrazione!"
+
 msgid "Edit timers on remote VDR"
 msgstr "Modifica timer di VDR remoto"
 
 msgid "Remote Timers"
 msgstr "Timer remoti"
+
+msgid "Moving recording"
+msgstr "Spostamento registrazione"
 
 msgid "Remote recording failed. Start local recording?"
 msgstr "Registrazione remota fallita. Avviare registrazione locale?"
@@ -115,6 +127,9 @@ msgstr "IP server"
 
 msgid "Server port"
 msgstr "Porta server"
+
+msgid "from svdrpservice"
+msgstr "da svdrpservice"
 
 msgid "Hide mainmenu entry"
 msgstr "Nascondi voce menu principale"
@@ -146,6 +161,12 @@ msgstr "Mostra barra avanzamento nel menu \"%s\""
 #, c-format
 msgid "User ID filter in menu \"%s\""
 msgstr "Filtra per ID utente nel menu \"%s\""
+
+msgid "Move recording bandwidth limit (Mbit/s)"
+msgstr "Limite banda spostamento registrazione (Mbit/s)"
+
+msgid "unlimited"
+msgstr "illimitato"
 
 msgid "Remote recordings"
 msgstr "Registrazioni remote"
@@ -188,3 +209,6 @@ msgstr "Errore inatteso - impossibile avviare taglio remoto"
 
 msgid "Lost SVDRP connection - unable to start remote cutter"
 msgstr "Persa connessione SVDRP - impossibile avviare taglio remoto"
+
+msgid "Remote timers not available"
+msgstr "Timer remoti non disponibili"

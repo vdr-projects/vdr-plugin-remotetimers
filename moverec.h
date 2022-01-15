@@ -19,19 +19,33 @@
  * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
-#ifndef _REMOTETIMERS_I18N__H
-#define _REMOTETIMERS_I18N__H
+#ifndef _REMOTETIMERS_MOVEDIR_H
+#define _REMOTETIMERS_MOVEDIR_H
 
-#include <vdr/i18n.h>
+#include <vdr/thread.h>
+#include <vdr/tools.h>
 
-#if VDRVERSNUM < 10507
-#define trNOOP(s) (s)
-#define trREMOTETIMERS(s) tr(s)
-extern const tI18nPhrase Phrases[];
-#else
-#undef tr
-#define tr(s) I18nTranslate(s)
-#define trREMOTETIMERS(s) I18nTranslate(s, "vdr-" PLUGIN_NAME_I18N)
+class cRecording;
+
+class cMoveRec: public cThread {
+	private:
+		cString srcDir;
+		cString dstDir;
+
+		int CopyAttr(const struct stat* st, const char* dst);
+		int CopyFile(const char* src, const char* dst);
+		int CopyLink(const char* src, const char* dst);
+		int MoveDir(cReadDir& dir, const char* srcdir, const char* dstdir);
+
+		static cMoveRec* moveRec;
+		cMoveRec();
+	protected:
+		virtual void Action();
+	public:
+		static bool IsMoving();
+		static void Abort(int WaitSeconds = 0);
+		static cMoveRec* GetInstance();
+		bool Move(const cRecording* Recording, const char* DstDir);
+};
+
 #endif
-
-#endif //_REMOTETIMERS_I18N__H

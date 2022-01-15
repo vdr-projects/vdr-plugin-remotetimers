@@ -1,9 +1,22 @@
 /*
- * remotetimers.c: A plugin for the Video Disk Recorder
+ * Copyright (C) 2008-2011 Frank Schmirler <vdr@schmirler.de>
  *
- * See the README file for copyright information and how to reach the author.
+ * This file is part of VDR Plugin remotetimers.
  *
- * $Id$
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
 #include <vdr/plugin.h>
@@ -12,10 +25,11 @@
 #include "remotetimers.h"
 #include "setup.h"
 #include "menu.h"
+#include "moverec.h"
 #include "watcher.h"
 #include "i18n.h"
 
-static const char *VERSION        = "0.1.4-alpha3";
+static const char *VERSION        = "0.1.4";
 static const char *DESCRIPTION    = trNOOP("Edit timers on remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote Timers");
 
@@ -89,6 +103,7 @@ void cPluginRemotetimers::Stop(void)
   // Stop any background activities the plugin shall perform.
   cSvdrp::DeleteInstance();
   cUpdateWatcher::DeleteInstance();
+  cMoveRec::Abort(10);
 }
 
 void cPluginRemotetimers::Housekeeping(void)
@@ -105,12 +120,13 @@ void cPluginRemotetimers::MainThreadHook(void)
 cString cPluginRemotetimers::Active(void)
 {
   // Return a message string if shutdown should be postponed
+  if (cMoveRec::IsMoving())
+  	return trREMOTETIMERS("Moving recording");
   return NULL;
 }
 
 cOsdObject *cPluginRemotetimers::MainMenuAction(void)
 {
-  // Perform the action when selected from the main VDR menu.
   // Return to our recordings menu after replaying a recording from there
   return new ::PluginRemoteTimers::cMenuMain(tr(MAINMENUENTRY), ::PluginRemoteTimers::cMenuRecordings::ReplayEnded() ? osRecordings : osUnknown);
 }

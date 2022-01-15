@@ -1,9 +1,22 @@
 /*
- * remotetimers.c: A plugin for the Video Disk Recorder
+ * Copyright (C) 2008-2011 Frank Schmirler <vdr@schmirler.de>
  *
- * See the README file for copyright information and how to reach the author.
+ * This file is part of VDR Plugin remotetimers.
  *
- * $Id$
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
 #include <vdr/config.h>
@@ -29,7 +42,7 @@ cRemoteTimersSetup::cRemoteTimersSetup() {
 	replaceTimers = 0;
 	replaceRecordings = 0;
 	serverIp[0] = 0;
-	serverPort = 2001;
+	serverPort = 0;
 	swapOkBlue = 0;
 	showProgressBar = 0;
 	userFilterSchedule = 0;
@@ -39,6 +52,7 @@ cRemoteTimersSetup::cRemoteTimersSetup() {
 	addToRemote = 1;
 	remotePause = 0;
 	remoteInstant = 0;
+	moveBandwidth = 0;
 	serverDir[0] = 0;
 	watchUpdate = 1;
 }
@@ -59,6 +73,7 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	addToRemote = Setup.addToRemote;
 	remotePause = Setup.remotePause;
 	remoteInstant = Setup.remoteInstant;
+	moveBandwidth = Setup.moveBandwidth;
 	copyFilename(serverDir, Setup.serverDir, sizeof(serverDir));
 	watchUpdate = Setup.watchUpdate;
 	return *this;
@@ -95,6 +110,8 @@ bool cRemoteTimersSetup::Parse(const char *Name, const char *Value) {
 		remotePause = atoi(Value);
 	else if (!strcasecmp(Name, "RemoteInstant"))
 		remoteInstant = atoi(Value);
+	else if (!strcasecmp(Name, "MoveBandwidth"))
+		moveBandwidth = atoi(Value);
 	else if (!strcasecmp(Name, "serverDir"))
 		copyFilename(serverDir, Value, sizeof(serverDir));
 	else if (!strcasecmp(Name, "WatchUpdate"))
@@ -120,6 +137,7 @@ void cRemoteTimersMenuSetup::Store() {
 	SetupStore("AddToRemote", setupTmp.addToRemote);
 	SetupStore("RemotePause", setupTmp.remotePause);
 	SetupStore("RemoteInstant", setupTmp.remoteInstant);
+	SetupStore("MoveBandwidth", setupTmp.moveBandwidth);
 	SetupStore("ServerDir", setupTmp.serverDir);
 	SetupStore("WatchUpdate", setupTmp.watchUpdate);
 	bool serverDirUpdated = RemoteTimersSetup.watchUpdate != setupTmp.watchUpdate ||
@@ -148,7 +166,7 @@ void cRemoteTimersMenuSetup::Set() {
 	int current = Current();
 	Clear();
 	Add(new cMenuEditStrItem(trREMOTETIMERS("Server IP"), setupTmp.serverIp, sizeof(setupTmp.serverIp), ".1234567890"));
-	Add(new cMenuEditIntItem(trREMOTETIMERS("Server port"), &setupTmp.serverPort, 0, 65535));
+	Add(new cMenuEditIntItem(trREMOTETIMERS("Server port"), &setupTmp.serverPort, 0, 65535, trREMOTETIMERS("from svdrpservice")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Hide mainmenu entry"), &setupTmp.hideMainMenuEntry));
 #ifdef MAINMENUHOOKSVERSNUM
 	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Replace mainmenu \"%s\""), tr("Schedule")), &setupTmp.replaceSchedule));
@@ -170,6 +188,7 @@ void cRemoteTimersMenuSetup::Set() {
 	Add(new cMenuEditIntItem(cString::sprintf(trREMOTETIMERS("User ID filter in menu \"%s\""), tr("Schedule")), &setupTmp.userFilterSchedule, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
 	Add(new cMenuEditIntItem(cString::sprintf(trREMOTETIMERS("User ID filter in menu \"%s\""), tr("Timers")), &setupTmp.userFilterTimers, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
 	Add(new cMenuEditIntItem(cString::sprintf(trREMOTETIMERS("User ID filter in menu \"%s\""), tr("Recordings")), &setupTmp.userFilterRecordings, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
+	Add(new cMenuEditIntItem(trREMOTETIMERS("Move recording bandwidth limit (Mbit/s)"), &setupTmp.moveBandwidth, 0, INT_MAX, trREMOTETIMERS("unlimited")));
 
 	Add(new cOsdItem(trREMOTETIMERS("Remote recordings"), osUnknown, false));
 	Add(new cMenuEditStrItem(trREMOTETIMERS("Mounted on subdirectory"), setupTmp.serverDir, sizeof(setupTmp.serverDir), tr(FileNameChars)));

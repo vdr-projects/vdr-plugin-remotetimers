@@ -48,7 +48,7 @@ DEFINES += -D_GNU_SOURCE -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 
 ### The object files (add further files here):
 
-OBJS = $(PLUGIN).o svdrp.o menu.o menuitems.o setup.o watcher.o i18n.o
+OBJS = $(PLUGIN).o svdrp.o menu.o menuitems.o setup.o moverec.o watcher.o i18n.o
 
 .PHONY: all i18n dist clean
 all: libvdr-$(PLUGIN).so i18n
@@ -81,7 +81,7 @@ I18Npot   = $(PODIR)/$(PLUGIN).pot
 %.mo: %.po
 	msgfmt -c -o $@ $<
 
-$(I18Npot): $(wildcard *.c)
+$(I18Npot): $(wildcard *.c) menu.h
 	xgettext -C -cTRANSLATORS --no-wrap --no-location -k -ktrREMOTETIMERS -ktrNOOP --msgid-bugs-address='<vdrdev@schmirler.de>' -o $@ $^
 
 %.po: $(I18Npot)

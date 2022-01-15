@@ -8,12 +8,6 @@ Latest version available at: http://vdr.schmirler.de/
 See the file COPYING for license information.
 ___________________________________________________________________________
 
-!!!!  WARNING !!!!
-------------------
-Version 0.1.x is a development release. The core functionality should be
-fine, but some of the new features are either incomplete or not very well
-tested. See "Major open issues" at the end of this README.
-
 Contents:
 ---------
 1. Description
@@ -27,8 +21,7 @@ Contents:
 5.2. Schedule menu
 5.3. Timers menu
 5.4. Recordings menu
-6. Major open issues
-7. Credits
+6. Credits
 
 1. Description:
 ---------------
@@ -62,9 +55,9 @@ work just fine without them, but add support for some additional features:
 - MainMenuHooks: replace the VDR menus "Schedule", "Timers" and "Recordings"
   with the corresponding plugin menus.
 - remote_instant_recordings: redirects instant recordings to the server VDR
-- video_on_networkshare: fixes a bug in VDR. Apply if your local video
-  directory and at least one of its subdirectories are network mounts of
-  different shares. Without the patch the calculated amount of free
+- video_on_networkshare: fixes a bug in VDR < 1.7.10. Apply if your local
+  video directory and at least one of its subdirectories are network mounts
+  of different shares. Without the patch the calculated amount of free
   diskspace will not always be accurate.
 
 A detailed description of the patches and instructions how to apply them can
@@ -167,6 +160,11 @@ timers of this specific user and timers of user "0" will be visible. Select
 
 - User ID filter in menu "Recordings"
 Dito for recordings. A recording inherits the user IDs of the timer.
+
+- Move recording bandwidth limit (Mbit/s)
+If you rename a recording and the new name points to a different filesystem,
+the recording must be copied in the background. If you want to limit the
+bandwidth used for transfer, you can do it here.
 
 *** Remote recordings ***
 
@@ -277,6 +275,12 @@ you change the folder, "green" starts the cutter on the recording and
 "Yellow" gives you the recording commands. For a network mounted recording,
 the cutter is started on the remote VDR.
 
+You can rename a recording or move it into a different folder, too. If the
+destination folder is on a different filesystem, remotetimers will ask you
+if it should move the recording in the background. The bandwidth for this
+background activity can be limited in the plugin setup. It is possible to
+abort the task in the plugin main menu (make sure it isn't hidden).
+
 In contrast to VDR's original recordings menu, the disk space information
 in the title bar always corresponds to the filesystem of the currently
 selected directory. So if there are subdirectories in your video directory
@@ -287,19 +291,13 @@ directories on different filesystems. It will fail, if the base video
 directory itself is a network mount (e.g. NFS or CIFS). From the patches
 subdirectory, apply vdr-1.5.15-1.7.9-video_on_networkshare.diff to fix
 this. The patch is not required if the video directory is on a local
-harddrive and subdirectories are network mounts.
+harddrive and subdirectories are network mounts or if VDR is at least
+version 1.7.10.
 
 The titles of the "Recording info" and "Edit recording" menus include
 the recording's size and length.
 
-6. Major open issues:
----------------------
-- Editing recordings on a VDR with multiple video directories has not been
-  tested at all. Beware! You might loose your data!
-- Renaming recordings across filesystems not implemented
-- remote_instant_recordings patch not tested with timersync-plugin
-
-7. Credits:
+6. Credits:
 -----------
 Thanks to Klaus Schmidinger and everyone who contributed to those parts
 of the menu code I copied from VDR.
