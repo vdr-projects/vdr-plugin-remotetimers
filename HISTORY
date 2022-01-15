@@ -1,6 +1,18 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
+2009-02-23: Version 0.1.1
+
+- New setup option for swapping the key bindings of "Ok" and "Blue" in the
+  "What's on now/next" menus (suggested by HolgerR@vdrportal)
+- Update recordings list after mount/unmount of video directory
+- Fixed remote cutting which didn't work if local video directory is equal
+  to the server's video directory (reported by kris@vdrportal)
+- Fixed compile error in remote_instant_recordings-patch (reported by
+  kris@vdrportal)
+- Fixed incompatibility with switchtimer-patch (reported by Andreas Schott)
+- Updated Italian translations (thanks to Diego Pierotto)
+
 2008-10-30: Version 0.1.0
 
 - Plugin now has its own Recordings menu. Features:

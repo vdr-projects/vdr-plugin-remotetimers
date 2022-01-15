@@ -7,6 +7,8 @@
 #ifndef _REMOTETIMERS_WATCHER__H
 #define _REMOTETIMERS_WATCHER__H
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <vdr/thread.h>
 
 class cUpdateWatcher: private cThread {
@@ -14,6 +16,9 @@ class cUpdateWatcher: private cThread {
 		static cUpdateWatcher* updateWatcher;
 		cCondWait condWait;
 		const char* serverUpdateFile;
+		bool inSubDir;
+
+		static dev_t DeviceId(const char* FileName);
 	protected:
 		virtual void Action();
 	public:

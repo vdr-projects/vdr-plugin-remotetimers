@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdrdev@schmirler.de>\n"
-"POT-Creation-Date: 2008-10-17 21:56+0200\n"
-"PO-Revision-Date: 2008-10-20 19:13+0100\n"
+"POT-Creation-Date: 2009-02-19 12:45+0100\n"
+"PO-Revision-Date: 2009-02-21 19:08+0100\n"
 "Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
 "MIME-Version: 1.0\n"
@@ -105,6 +105,10 @@ msgid "Settings for menu"
 msgstr "Impostazioni menu"
 
 #, c-format
+msgid "Binding of %s/%s in \"What's on\" menus"
+msgstr "Associazione %s/%s nel menu \"Adesso\""
+
+#, c-format
 msgid "Show progress bar in menu \"%s\""
 msgstr "Mostra barra avanzamento nel menu \"%s\""
 
@@ -153,4 +157,5 @@ msgstr "Errore inatteso - impossibile avviare taglio remoto"
 
 msgid "Lost SVDRP connection - unable to start remote cutter"
 msgstr "Persa connessione SVDRP - impossibile avviare taglio remoto"
+
 

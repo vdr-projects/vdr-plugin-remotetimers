@@ -19,6 +19,7 @@ struct cRemoteTimersSetup {
 	int replaceRecordings;
 	char serverIp[MAX_IP_LENGTH];
 	int serverPort;
+	int swapOkBlue;
 	int showProgressBar;
 	int userFilterSchedule;
 	int userFilterTimers;
@@ -41,6 +42,8 @@ class cRemoteTimersMenuSetup: public cMenuSetupPage {
 	private:
 		cRemoteTimersSetup setupTmp;
 		const char *lastServerDir;
+		const char *swapOkBlueFalse;
+		const char *swapOkBlueTrue;
 		void Set();
 	protected:
 		virtual void Store(void);

@@ -10,7 +10,7 @@ ___________________________________________________________________________
 
 !!!!  WARNING !!!!
 ------------------
-Version 0.1.0 is a development release. The core functionality should be
+Version 0.1.x is a development release. The core functionality should be
 fine, but some of the new features are either incomplete or not very well
 tested. See "Major open issues" at the end of this README.
 
@@ -143,6 +143,10 @@ the user who is current at the moment the timer is created.
 
 *** Settings for menu ***
 
+- Binding of Ok/Blue keys in "What's on" menus
+Vanilla VDR shows the EPG details with "Ok" and switches to the selected
+channel with "Blue". Swap it if you like.
+
 - Show progress bar in menu "Schedule"
 Adds progress bars to the "What's on now?" menu.
 
@@ -173,9 +177,11 @@ work as expected when this setting is incorrect.
 - Monitor update file
 If the server's recordings directory is mounted on a subdirectory of the
 local recordings directory, the local VDR won't detect updates such as
-new or deleted recordings made by the remote VDR. Enable this options to
-have remotetimers monitor the .update file of the server and refresh the
-local recordings list when necessary.
+new or deleted recordings made by the remote VDR. Likewise, VDR will miss a
+mount or unmount if the local video directory itself is server mounted and
+the timestamp of the update file is older afterwards. Enable this options to
+have remotetimers monitor the .update file and refresh the local recordings
+list when necessary.
 
 5. Usage:
 ---------

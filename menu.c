@@ -611,8 +611,8 @@ eOSState cMenuTimers::ProcessKey(eKeys Key)
                      break;
        case k0 ... k9:
                      userFilter = Key - k0;
-		     if (RemoteTimersSetup.userFilterTimers < 0 && Setup.ResumeID != userFilter) {
-		        Setup.ResumeID = userFilter;
+		     if (RemoteTimersSetup.userFilterTimers < 0 && ::Setup.ResumeID != userFilter) {
+		        ::Setup.ResumeID = userFilter;
 			Recordings.ResetResume();
 			}
                      Set();
@@ -862,7 +862,7 @@ void cMenuWhatsOn::SetHelpKeys(void)
      }
   if (NewHelpKeys != helpKeys) {
      const char *Red[] = { NULL, tr("Button$Record"), tr("Button$Timer") };
-     SetHelp(Red[NewHelpKeys], now ? tr("Button$Next") : tr("Button$Now"), tr("Button$Schedule"), tr("Button$Switch"));
+     SetHelp(Red[NewHelpKeys], now ? tr("Button$Next") : tr("Button$Now"), tr("Button$Schedule"), RemoteTimersSetup.swapOkBlue ? tr("Button$Info") : tr("Button$Switch"));
      helpKeys = NewHelpKeys;
      }
 }
@@ -988,9 +988,10 @@ eOSState cMenuWhatsOn::ProcessKey(eKeys Key)
                           }
                      }
                      break;
-       case kBlue:   return Switch();
-       case kInfo:
-       case kOk:     if (Count())
+       case kBlue:
+       case kOk:     if (Key == kOk && RemoteTimersSetup.swapOkBlue || Key == kBlue && !RemoteTimersSetup.swapOkBlue)
+                        return Switch();
+       case kInfo:   if (Count())
                         return AddSubMenu(new cMenuEvent(((cMenuScheduleItem *)Get(Current()))->event, true, true));
                      break;
        default:      break;
@@ -1565,7 +1566,7 @@ eOSState cMenuEditRecording::Cut()
 	   char *p = strchr(date, ' ');
 	   if (p && (p = strchr(++p, ' ')) && p) {
               *p = 0;
-              eRemoteRecordingsState state = RemoteRecordings.Cut(date, name + len + 1);
+              eRemoteRecordingsState state = RemoteRecordings.Cut(date, name + (len ? len + 1 : 0));
               if (state == rrsOk)
                  Skins.Message(mtInfo, trREMOTETIMERS("Remote editing process started"));
               else
@@ -1824,7 +1825,7 @@ cMenuRecordings::cMenuRecordings(const char *Base, int Level, bool OpenSubMenus)
 :cOsdMenu(Base ? Base : tr("Recordings"), 9, 7)
 {
   base = Base ? strdup(Base) : NULL;
-  level = Setup.RecordingDirs ? Level : -1;
+  level = ::Setup.RecordingDirs ? Level : -1;
   if (level <= 0 && !replayEnded)
      userFilter = USER_FROM_SETUP(RemoteTimersSetup.userFilterRecordings);
   Recordings.StateChanged(recordingsState); // just to get the current state
@@ -2123,8 +2124,8 @@ eOSState cMenuRecordings::ProcessKey(eKeys Key)
        //case k1...k9: return Commands(Key);
        case k0 ... k9:
                      userFilter = Key - k0;
-		     if (RemoteTimersSetup.userFilterRecordings < 0 && Setup.ResumeID != Key - k0) {
-		        Setup.ResumeID = Key - k0;
+		     if (RemoteTimersSetup.userFilterRecordings < 0 && ::Setup.ResumeID != Key - k0) {
+		        ::Setup.ResumeID = Key - k0;
 			Recordings.ResetResume();
 			}
                      Set(true);

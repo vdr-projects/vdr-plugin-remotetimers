@@ -30,6 +30,7 @@ void cUpdateWatcher::DeleteInstance()
 cUpdateWatcher::cUpdateWatcher(): cThread("remotetimers update file watcher")
 {
 	serverUpdateFile = NULL;
+	inSubDir = false;
 }
 
 cUpdateWatcher::~cUpdateWatcher()
@@ -48,29 +49,58 @@ void cUpdateWatcher::Reconfigure()
 	}
 	free((void *) serverUpdateFile);
 	serverUpdateFile = NULL;
-	if (RemoteTimersSetup.watchUpdate && RemoteTimersSetup.serverDir[0])
+	if (RemoteTimersSetup.watchUpdate)
 	{
-		char *tmpDir = strdup(RemoteTimersSetup.serverDir);
-		tmpDir = ExchangeChars(tmpDir, true);
-		serverUpdateFile = strdup(AddDirectory(VideoDirectory, AddDirectory(tmpDir, ".update")));
-		free(tmpDir);
+		inSubDir = RemoteTimersSetup.serverDir[0];
+		if (inSubDir)
+		{
+			char *tmpDir = strdup(RemoteTimersSetup.serverDir);
+			tmpDir = ExchangeChars(tmpDir, true);
+			serverUpdateFile = strdup(AddDirectory(VideoDirectory, AddDirectory(tmpDir, ".update")));
+			free(tmpDir);
+		}
+		else
+		{
+			serverUpdateFile = strdup(AddDirectory(VideoDirectory, ".update"));
+		}
 		dsyslog("remotetimers update file watcher now monitoring '%s'", serverUpdateFile);
 		Start();
 	}
 }
 
+dev_t cUpdateWatcher::DeviceId(const char* FileName)
+{
+	struct stat st;
+	if (stat(FileName, &st) == 0)
+		return st.st_dev;
+	return 0;
+}
+
 void cUpdateWatcher::Action()
 {
 	SetPriority(19);
-	time_t tLast = LastModifiedTime(serverUpdateFile);
+	time_t tLast = inSubDir ? LastModifiedTime(serverUpdateFile) : 0;
+	dev_t dLast = inSubDir ? 0 : DeviceId(serverUpdateFile);
 
 	while (!condWait.Wait(WATCHER_INTERVALL_MS) && Running())
 	{
-		time_t t = LastModifiedTime(serverUpdateFile);
-		if (t != tLast)
+		if (inSubDir)
 		{
-			Recordings.Update();
-			tLast = t;
+			time_t t = LastModifiedTime(serverUpdateFile);
+			if (t != tLast)
+			{
+				Recordings.Update();
+				tLast = t;
+			}
+		}
+		else
+		{
+			dev_t d = DeviceId(serverUpdateFile);
+			if (d != dLast)
+			{
+				Recordings.Update();
+				dLast = d;
+			}
 		}
 	}
 }

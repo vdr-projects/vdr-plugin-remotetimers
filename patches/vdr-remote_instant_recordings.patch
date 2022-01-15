@@ -83,7 +83,7 @@ and recompile.
 +              cReplayControl::SetRecording(ir.fileName, ir.name);
 + 	  delete t;
 + 	  // empty names indicate an error
-+ 	  return ir.fileName && ir.name;
++ 	  return *ir.fileName && *ir.name;
 +        }
 +        // service disabled or an error occured and the user confirmed local recording
 +        // fall through to local instant recording

@@ -38,6 +38,41 @@ const tI18nPhrase Phrases[] = {
     "",
 #endif
   },
+  { "Binding of %s/%s in \"What's on\" menus",
+    "Funktion von %s/%s in \"Was läuft\"-Menüs",
+    "",
+    "Associazione %s/%s nel menu \"Adesso\"",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
   { "Cancel",
     "Abmelden",
     "",

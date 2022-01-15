@@ -30,6 +30,7 @@ cRemoteTimersSetup::cRemoteTimersSetup() {
 	replaceRecordings = 0;
 	serverIp[0] = 0;
 	serverPort = 2001;
+	swapOkBlue = 0;
 	showProgressBar = 0;
 	userFilterSchedule = 0;
 	userFilterTimers = 0;
@@ -49,6 +50,7 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	replaceRecordings = Setup.replaceRecordings;
 	strn0cpy(serverIp, Setup.serverIp, sizeof(serverIp));
 	serverPort = Setup.serverPort;
+	swapOkBlue = Setup.swapOkBlue;
 	showProgressBar = Setup.showProgressBar;
 	userFilterSchedule = Setup.userFilterSchedule;
 	userFilterTimers = Setup.userFilterTimers;
@@ -75,6 +77,8 @@ bool cRemoteTimersSetup::Parse(const char *Name, const char *Value) {
 		strn0cpy(serverIp, Value, sizeof(serverIp));
 	else if (!strcasecmp(Name, "ServerPort"))
 		serverPort = atoi(Value);
+	else if (!strcasecmp(Name, "SwapOkBlue"))
+		swapOkBlue = atoi(Value);
 	else if (!strcasecmp(Name, "ShowProgressBar"))
 		showProgressBar = atoi(Value);
 	else if (!strcasecmp(Name, "UserFilterSchedule"))
@@ -107,6 +111,7 @@ void cRemoteTimersMenuSetup::Store() {
 	SetupStore("ReplaceRecordings", setupTmp.replaceRecordings);
 	SetupStore("ServerIp", setupTmp.serverIp);
 	SetupStore("ServerPort", setupTmp.serverPort);
+	SetupStore("SwapOkBlue", setupTmp.swapOkBlue);
 	SetupStore("ShowProgressBar", setupTmp.showProgressBar);
 	SetupStore("UserFilterSchedule", setupTmp.userFilterSchedule);
 	SetupStore("UserFilterTimers", setupTmp.userFilterTimers);
@@ -128,11 +133,15 @@ void cRemoteTimersMenuSetup::Store() {
 cRemoteTimersMenuSetup::cRemoteTimersMenuSetup() {
 	setupTmp = RemoteTimersSetup;
 	lastServerDir = strdup(setupTmp.serverDir);
+	swapOkBlueFalse = strdup(cString::sprintf("%s/%s", tr("Button$Info"), tr("Button$Switch")));
+	swapOkBlueTrue = strdup(cString::sprintf("%s/%s", tr("Button$Switch"), tr("Button$Info")));
 	Set();
 }
 
 cRemoteTimersMenuSetup::~cRemoteTimersMenuSetup() {
 	free((void *) lastServerDir);
+	free((void *) swapOkBlueFalse);
+	free((void *) swapOkBlueTrue);
 }
 
 void cRemoteTimersMenuSetup::Set() {
@@ -156,6 +165,7 @@ void cRemoteTimersMenuSetup::Set() {
 	Add(new PluginRemoteTimers::cMenuEditUserItem(trREMOTETIMERS("User ID"), &setupTmp.defaultUser, tr("Setup.Replay$Resume ID")));
 	
 	Add(new cOsdItem(trREMOTETIMERS("Settings for menu"), osUnknown, false));
+	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Binding of %s/%s in \"What's on\" menus"), tr("Key$Ok"), tr("Key$Blue")), &setupTmp.swapOkBlue, swapOkBlueFalse, swapOkBlueTrue));
 	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Show progress bar in menu \"%s\""), tr("Schedule")), &setupTmp.showProgressBar));
 	Add(new cMenuEditIntItem(cString::sprintf(trREMOTETIMERS("User ID filter in menu \"%s\""), tr("Schedule")), &setupTmp.userFilterSchedule, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
 	Add(new cMenuEditIntItem(cString::sprintf(trREMOTETIMERS("User ID filter in menu \"%s\""), tr("Timers")), &setupTmp.userFilterTimers, -1, MAX_USER, tr("Setup.Replay$Resume ID")));
@@ -163,8 +173,7 @@ void cRemoteTimersMenuSetup::Set() {
 
 	Add(new cOsdItem(trREMOTETIMERS("Remote recordings"), osUnknown, false));
 	Add(new cMenuEditStrItem(trREMOTETIMERS("Mounted on subdirectory"), setupTmp.serverDir, sizeof(setupTmp.serverDir), tr(FileNameChars)));
-	if (setupTmp.serverDir[0])
-		Add(new cMenuEditBoolItem(trREMOTETIMERS("Monitor update file"), &setupTmp.watchUpdate));
+	Add(new cMenuEditBoolItem(trREMOTETIMERS("Monitor update file"), &setupTmp.watchUpdate));
 	SetCurrent(Get(current));
 	Display();
 }
@@ -175,7 +184,6 @@ eOSState cRemoteTimersMenuSetup::ProcessKey(eKeys Key) {
 	{
 		free((void *) lastServerDir);
 		lastServerDir = strdup(setupTmp.serverDir);
-		Set();
 	}
 	return state;
 }
