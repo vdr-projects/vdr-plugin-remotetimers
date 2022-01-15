@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "timers.h"
 #include "setup.h"
+#include "i18n.h"
 
 cRemoteTimers RemoteTimers;
 
@@ -48,7 +49,7 @@ bool cRemoteTimer::Parse(const char *s) {
 // cRemoteTimers -------------------------------------------------
 
 cRemoteTimers::cRemoteTimers(): refcount(0) {
-	plugin = cPluginManager::GetPlugin("svdrpservice");
+	plugin = NULL;
 	svdrp.handle = -1;
 }
 
@@ -59,7 +60,11 @@ cRemoteTimers::~cRemoteTimers() {
 
 bool cRemoteTimers::Connect() {
 	refcount++;
-	if (plugin && svdrp.handle < 0) {
+	if (!plugin)
+		plugin = cPluginManager::GetPlugin("svdrpservice");
+	if (!plugin)
+		esyslog("remotetimers: Plugin svdrpservice not available. Aborting.");
+	else if (svdrp.handle < 0) {
 		svdrp.serverIp = RemoteTimersSetup.serverIp;
 		svdrp.serverPort = RemoteTimersSetup.serverPort;
 		svdrp.shared = true;
@@ -79,22 +84,32 @@ void cRemoteTimers::Disconnect() {
 cString cRemoteTimers::GetErrorMessage(eRemoteTimersState state) {
 	switch (state) {
 		case rtsRefresh:
-			return cString("Updated remote timers list");
+			return cString(trNOOP("Updated remote timers list"));
 		case rtsLocked:
-			return cString("Timers are being edited remotely - please try again");
+			return cString(trNOOP("Timers are being edited remotely - please try again"));
 		case rtsRecording:
-			return cString("Timer is recording - please deactivate it first");
+			return cString(trNOOP("Timer is recording - please deactivate it first"));
 		case rtsRejected:
-			return cString("Timer already defined");
+			return cString(trNOOP("Timer already defined"));
 		case rtsUpdated:
-			return cString("Timers modified remotely - please check remote timers");
+			return cString(trNOOP("Timers modified remotely - please check remote timers"));
 		case rtsUnexpected:
-			return cString("Unexpected error - please check remote timers");
+			return cString(trNOOP("Unexpected error - please check remote timers"));
 		case rtsConnError:
-			return cString("Lost SVDRP connection - please check remote timers");
+			return cString(trNOOP("Lost SVDRP connection - please check remote timers"));
 		default:
 			return cString();
 	}
+}
+
+unsigned int cRemoteTimers::GetFlags(const char *TimerString, const char*& Tail) {
+	int count;
+	unsigned int flags;
+	Tail = TimerString;
+	if (sscanf(TimerString, " %*u %u :%n", &flags, &count) > 0)
+		Tail += count;
+	// mask recording flag
+	return flags & ~tfRecording;
 }
 
 eRemoteTimersState cRemoteTimers::Refresh() {
@@ -112,7 +127,7 @@ eRemoteTimersState cRemoteTimers::Refresh() {
 			if (timer->Parse(line->Text()))
 				Add(timer);
 			else {
-				esyslog("remotetimer: Error parsing timer %s", line->Text());
+				esyslog("remotetimers: Error parsing timer %s", line->Text());
 				delete timer;
 			}
 		}
@@ -161,46 +176,39 @@ eRemoteTimersState cRemoteTimers::Delete(cRemoteTimer *Timer) {
 	unsigned short result;
 	eRemoteTimersState state;
 	
-	char *s;
-	state = Verify(Timer, s);
-	if (state == rtsOk && s) {
-		if (strcmp(s, Timer->Orig()) == 0) {
-			result = CmdDELT(Timer);
-			if (result == 250) {
-				Del(Timer);
-				// DELT changes timer numbers
-				state = rtsRefresh;
-			}
-			else if (result < 100)
-				state = rtsConnError;
-			else if (result == 550)
-				state = Timer->Recording() ? rtsRecording : rtsLocked;
-			else
-				state = rtsUnexpected;
+	state = Verify(Timer);
+	if (state == rtsOk) {
+		result = CmdDELT(Timer);
+		if (result == 250) {
+			Del(Timer);
+			// DELT changes timer numbers
+			state = rtsRefresh;
 		}
+		else if (result < 100)
+			state = rtsConnError;
+		else if (result == 550)
+			state = Timer->Recording() ? rtsRecording : rtsLocked;
 		else
-			state = rtsUpdated;
+			state = rtsUnexpected;
 	}
-	free(s);
 	return state;
 }
 
 eRemoteTimersState cRemoteTimers::Modify(cRemoteTimer *Timer) {
-	char *s;
 	unsigned short result;
 	eRemoteTimersState state;
 	
-	state = Verify(Timer, s);
-	if (state == rtsOk && s) {
+	state = Verify(Timer);
+	if (state == rtsOk) {
 		result = CmdMODT(Timer);
 		if (result == 250) {
-			free(s);
-			s = NULL;
+			char *s = NULL;
 			state = List(Timer->Id(), s);
 			if (state == rtsOk && s) {
 				if (!Timer->Parse(s))
 					result = rtsUnexpected;
 			}
+			free(s);
 		}
 		else if (result < 100)
 			state = rtsConnError;
@@ -209,18 +217,23 @@ eRemoteTimersState cRemoteTimers::Modify(cRemoteTimer *Timer) {
 		else
 			state = rtsUnexpected;
 	}
-	free(s);
 	return state;
 }
 
-eRemoteTimersState cRemoteTimers::Verify(cRemoteTimer *Timer, char*& TimerString) {
+eRemoteTimersState cRemoteTimers::Verify(cRemoteTimer *Timer) {
 	unsigned short result;
 	eRemoteTimersState state;
 	
-	result = CmdLSTT(Timer->Id(), TimerString);
+	char *s = NULL;
+	result = CmdLSTT(Timer->Id(), s);
 	if (result == 250) {
-		if (TimerString) {
-			if (strcmp(TimerString, Timer->Orig()) == 0)
+		if (s) {
+			const char *orig, *curr;
+			// masks the recording flag
+			unsigned int origFlags = GetFlags(Timer->Orig(), orig);
+			unsigned int currFlags = GetFlags(s, curr);
+			// compare flags and the rest
+			if (origFlags == currFlags && strcmp(orig, curr) == 0)
 				state = rtsOk;
 			else
 				state = rtsUpdated;
@@ -230,6 +243,7 @@ eRemoteTimersState cRemoteTimers::Verify(cRemoteTimer *Timer, char*& TimerString
 	}
 	else
 		state = (result < 100) ? rtsConnError : rtsUpdated;
+	free(s);
 	return state;
 }
 

@@ -4,11 +4,12 @@
  * See the main source file 'vdr.c' for copyright information and
  * how to reach the author.
  *
- * $Id: menu.c 1.435 2006/04/28 12:48:01 kls Exp $
+ * $Id: menu.c 1.482 2008/03/16 11:15:28 kls Exp $
  */
 
 #include "menu.h"
 #include "setup.h"
+#include "i18n.h"
 #include <vdr/menu.h>
 #include <vdr/menuitems.h>
 //#include <ctype.h>
@@ -20,11 +21,12 @@
 //#include "config.h"
 //#include "cutter.h"
 //#include "eitscan.h"
-#include <vdr/i18n.h>
+//#include "i18n.h"
 #include <vdr/interface.h>
 //#include "plugin.h"
 //#include "recording.h"
 //#include "remote.h"
+//#include "shutdown.h"
 //#include "sources.h"
 #include <vdr/status.h>
 //#include "themes.h"
@@ -38,22 +40,24 @@ namespace PluginRemoteTimers {
 
 //#define MAXWAIT4EPGINFO   3 // seconds
 //#define MODETIMEOUT       3 // seconds
-//#define DISKSPACECHEK     5 // seconds between disk space checks in the main menu
+//#define DISKSPACECHEK     5 // seconds between disk space checks
 #define NEWTIMERLIMIT   120 // seconds until the start time of a new timer created from the Schedule menu,
                             // within which it will go directly into the "Edit timer" menu to allow
                             // further parameter settings
 
 //#define MAXRECORDCONTROLS (MAXDEVICES * MAXRECEIVERS)
 //#define MAXINSTANTRECTIME (24 * 60 - 1) // 23:59 hours
-//#define MAXWAITFORCAMMENU 4 // seconds to wait for the CAM menu to open
-//#define MINFREEDISK       300 // minimum free disk space required to start recording
+//#define MAXWAITFORCAMMENU  10 // seconds to wait for the CAM menu to open
+//#define CAMMENURETYTIMEOUT  3 // seconds after which opening the CAM menu is retried
+//#define CAMRESPONSETIMEOUT  5 // seconds to wait for a response from a CAM
+//#define MINFREEDISK       300 // minimum free disk space (in MB) required to start recording
 //#define NODISKSPACEDELTA  300 // seconds between "Not enough disk space to start recording!" messages
 
 #define CHNUMWIDTH  (numdigits(Channels.MaxNumber()) + 1)
 
 #define AUX_STARTTAG "<remotetimers>"
 #define AUX_ENDTAG "</remotetimers>"
-#define MSG_UNAVAILABLE "Remote timers not available"
+#define MSG_UNAVAILABLE trNOOP("Remote timers not available")
 
 // --- cMenuEditRemoteTimer --------------------------------------------------------
 class cMenuEditRemoteTimer : public cMenuEditTimer {
@@ -86,11 +90,11 @@ cMenuEditRemoteTimer::cMenuEditRemoteTimer(cTimer *Timer, cString *TimerString, 
 {
   remote = tmpRemote = Remote;
   user = tmpUser = New ? RemoteTimersSetup.defaultUser : cMenuTimerItem::ParseUser(*timer);
-  cOsdItem *item = new cMenuEditBoolItem(tr("Location"), &tmpRemote, tr("local"), tr("remote"));
+  cOsdItem *item = new cMenuEditBoolItem(trREMOTETIMERS("Location"), &tmpRemote, trREMOTETIMERS("local"), trREMOTETIMERS("remote"));
   if (RemoteTimers.Offline())
       item->SetSelectable(false);
   Add(item, false, First());
-  Add(new cMenuEditIntItem(tr("User ID"), &tmpUser, 0, 9), false, Get(8));
+  Add(new cMenuEditIntItem(trREMOTETIMERS("User ID"), &tmpUser, 0, 9), false, Get(8));
 }
 
 eOSState cMenuEditRemoteTimer::CheckState(eRemoteTimersState State)
@@ -120,7 +124,7 @@ eOSState cMenuEditRemoteTimer::ProcessKey(eKeys Key)
         else if (tmpRemote) {
            // move local to remote
            if (timer->Recording()) {
-              Skins.Message(mtError, tr("Timer is recording - can't move it to server"));
+              Skins.Message(mtError, trREMOTETIMERS("Timer is recording - can't move it to server"));
               state = osContinue;
               }
            else {
@@ -206,7 +210,11 @@ void cMenuTimerItem::Set(void)
 {
   cString day, name("");
   if (timer->WeekDays())
+#if VDRVERSNUM < 10503
      day = timer->PrintDay(0, timer->WeekDays());
+#else
+     day = timer->PrintDay(0, timer->WeekDays(), false);
+#endif
   else if (timer->Day() - time(NULL) < 28 * SECSINDAY) {
      day = itoa(timer->GetMDay(timer->Day()));
      name = WeekDayName(timer->Day());
@@ -219,9 +227,9 @@ void cMenuTimerItem::Set(void)
      strftime(buffer, sizeof(buffer), "%Y%m%d", &tm_r);
      day = buffer;
      }
-  char *buffer = NULL;
-  const char *RL = tr("RL");
-  asprintf(&buffer, "%c\t%c%d\t%s%s%s\t%02d:%02d\t%02d:%02d\t%s",
+  // TRANSLATORS: Indicator for (R)emote or (L)ocal timer in timers list
+  const char *RL = trREMOTETIMERS("RL");
+  SetText(cString::sprintf("%c\t%c%d\t%s%s%s\t%02d:%02d\t%02d:%02d\t%s",
                     !(timer->HasFlags(tfActive)) ? ' ' : timer->FirstDay() ? '!' : timer->Recording() ? '#' : '>',
                     RL[remote ? 0 : 1],
                     timer->Channel()->Number(),
@@ -232,8 +240,7 @@ void cMenuTimerItem::Set(void)
                     timer->Start() % 100,
                     timer->Stop() / 100,
                     timer->Stop() % 100,
-                    timer->File());
-  SetText(buffer, false);
+                    timer->File()));
 }
 
 int cMenuTimerItem::ParseUser(const cTimer& Timer) {
@@ -367,7 +374,7 @@ void cMenuTimers::Set(eRemoteTimersState Msg)
   if (userFilter == 0)
       SetTitle(tr("Timers"));
   else
-      SetTitle(cString::sprintf(tr("Timers - User %d"), userFilter));
+      SetTitle(cString::sprintf(trREMOTETIMERS("Timers - User %d"), userFilter));
 
   if (Msg > state)
       state = Msg;
@@ -498,6 +505,7 @@ eOSState cMenuTimers::ProcessKey(eKeys Key)
        case kRed:    state = OnOff(); break; // must go through SetHelpKeys()!
        case kGreen:  return New();
        case kYellow: state = Delete(); break;
+       case kInfo:
        case kBlue:   return Info();
                      break;
        case k0 ... k9:
@@ -560,8 +568,9 @@ eOSState cMenuEvent::ProcessKey(eKeys Key)
     case kRight|k_Repeat:
     case kRight:
                   DisplayMenu()->Scroll(NORMALKEY(Key) == kUp || NORMALKEY(Key) == kLeft, NORMALKEY(Key) == kLeft || NORMALKEY(Key) == kRight);
-                  cStatus::MsgOsdTextItem(NULL, NORMALKEY(Key) == kUp);
+                  cStatus::MsgOsdTextItem(NULL, NORMALKEY(Key) == kUp || NORMALKEY(Key) == kLeft);
                   return osContinue;
+    case kInfo:   return osBack;
     default: break;
     }
 
@@ -620,7 +629,7 @@ int cMenuScheduleItem::Compare(const cListObject &ListObject) const
   return r;
 }
 
-static char *TimerMatchChars = " tT";
+static const char *TimerMatchChars = " tT";
 
 bool cMenuScheduleItem::Update(bool Force)
 {
@@ -632,17 +641,22 @@ bool cMenuScheduleItem::Update(bool Force)
   if (remoteTimerMatch > timerMatch)
      timerMatch = remoteTimerMatch;
   if (Force || timerMatch != OldTimerMatch) {
-     char *buffer = NULL;
+     cString buffer;
      char t = TimerMatchChars[timerMatch];
      char v = event->Vps() && (event->Vps() - event->StartTime()) ? 'V' : ' ';
      char r = event->SeenWithin(30) && event->IsRunning() ? '*' : ' ';
+     const char *csn = channel ? channel->ShortName(true) : NULL;
+     cString eds = event->GetDateString();
+#if VDRVERSNUM < 10503
+#define Utf8SymChars(a,b) b
+#endif
      if (channel && withDate)
-        asprintf(&buffer, "%d\t%.*s\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), 6, channel->ShortName(true), 6, *event->GetDateString(), *event->GetTimeString(), t, v, r, event->Title());
+        buffer = cString::sprintf("%d\t%.*s\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, 6), csn, Utf8SymChars(csn, 6), *eds, *event->GetTimeString(), t, v, r, event->Title());
      else if (channel)
-        asprintf(&buffer, "%d\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), 6, channel->ShortName(true), *event->GetTimeString(), t, v, r, event->Title());
+        buffer = cString::sprintf("%d\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, 6), csn, *event->GetTimeString(), t, v, r, event->Title());
      else
-        asprintf(&buffer, "%.*s\t%s\t%c%c%c\t%s", 6, *event->GetDateString(), *event->GetTimeString(), t, v, r, event->Title());
-     SetText(buffer, false);
+        buffer = cString::sprintf("%.*s\t%s\t%c%c%c\t%s", Utf8SymChars(eds, 6), *eds, *event->GetTimeString(), t, v, r, event->Title());
+     SetText(buffer);
      result = true;
      }
   return result;
@@ -823,6 +837,7 @@ eOSState cMenuWhatsOn::ProcessKey(eKeys Key)
                      }
                      break;
        case kBlue:   return Switch();
+       case kInfo:
        case kOk:     if (Count())
                         return AddSubMenu(new cMenuEvent(((cMenuScheduleItem *)Get(Current()))->event, true, true));
                      break;
@@ -895,10 +910,7 @@ void cMenuSchedule::PrepareScheduleAllThis(const cEvent *Event, const cChannel *
 {
   Clear();
   SetCols(7, 6, 4);
-  char *buffer = NULL;
-  asprintf(&buffer, tr("Schedule - %s"), Channel->Name());
-  SetTitle(buffer);
-  free(buffer);
+  SetTitle(cString::sprintf(tr("Schedule - %s"), Channel->Name()));
   if (schedules && Channel) {
      const cSchedule *Schedule = schedules->GetSchedule(Channel);
      if (Schedule) {
@@ -916,10 +928,7 @@ void cMenuSchedule::PrepareScheduleThisThis(const cEvent *Event, const cChannel 
 {
   Clear();
   SetCols(7, 6, 4);
-  char *buffer = NULL;
-  asprintf(&buffer, tr("This event - %s"), Channel->Name());
-  SetTitle(buffer);
-  free(buffer);
+  SetTitle(cString::sprintf(tr("This event - %s"), Channel->Name()));
   if (schedules && Channel && Event) {
      const cSchedule *Schedule = schedules->GetSchedule(Channel);
      if (Schedule) {
@@ -1126,6 +1135,7 @@ eOSState cMenuSchedule::ProcessKey(eKeys Key)
        case kBlue:   if (Count() && otherChannel)
                         return Switch();
                      break;
+       case kInfo:
        case kOk:     if (Count())
                         return AddSubMenu(new cMenuEvent(((cMenuScheduleItem *)Get(Current()))->event, otherChannel, true));
                      break;

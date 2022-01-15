@@ -7,13 +7,13 @@
  */
 
 #include <vdr/plugin.h>
-#include "i18n.h"
 #include "setup.h"
 #include "menu.h"
+#include "i18n.h"
 
-static const char *VERSION        = "0.0.1";
-static const char *DESCRIPTION    = "Edit timers on remote VDR";
-static const char *MAINMENUENTRY  = "Remote Timers";
+static const char *VERSION        = "0.0.2";
+static const char *DESCRIPTION    = trNOOP("Edit timers on remote VDR");
+static const char *MAINMENUENTRY  = trNOOP("Remote Timers");
 
 class cPluginRemotetimers : public cPlugin {
 private:
@@ -22,7 +22,7 @@ public:
   cPluginRemotetimers(void);
   virtual ~cPluginRemotetimers();
   virtual const char *Version(void) { return VERSION; }
-  virtual const char *Description(void) { return tr(DESCRIPTION); }
+  virtual const char *Description(void) { return trREMOTETIMERS(DESCRIPTION); }
   virtual const char *CommandLineHelp(void);
   virtual bool ProcessArgs(int argc, char *argv[]);
   virtual bool Initialize(void);
@@ -31,7 +31,7 @@ public:
   virtual void Housekeeping(void);
   virtual void MainThreadHook(void);
   virtual cString Active(void);
-  virtual const char *MainMenuEntry(void) { return RemoteTimersSetup.hideMainMenuEntry ? NULL : tr(MAINMENUENTRY); }
+  virtual const char *MainMenuEntry(void) { return RemoteTimersSetup.hideMainMenuEntry ? NULL : trREMOTETIMERS(MAINMENUENTRY); }
   virtual cOsdObject *MainMenuAction(void);
   virtual cMenuSetupPage *SetupMenu(void);
   virtual bool SetupParse(const char *Name, const char *Value);
@@ -73,7 +73,9 @@ bool cPluginRemotetimers::Initialize(void)
 bool cPluginRemotetimers::Start(void)
 {
   // Start any background activities the plugin shall perform.
+#if VDRVERSNUM < 10507
   RegisterI18n(Phrases);
+#endif
   return true;
 }
 

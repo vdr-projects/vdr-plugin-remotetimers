@@ -39,8 +39,9 @@ class cRemoteTimers: public cList<cRemoteTimer> {
 		unsigned short CmdLSTT(int Number, char*& TimerString);
 		unsigned short CmdMODT(cRemoteTimer *Timer);
 		unsigned short CmdNEWT(cRemoteTimer *Timer, int& Number);
-	protected:
-		eRemoteTimersState Verify(cRemoteTimer *Timer, char*& TimerString);
+
+		unsigned int GetFlags(const char *TimerString, const char*& Tail);
+		eRemoteTimersState Verify(cRemoteTimer *Timer);
 		eRemoteTimersState List(int Number, char*& TimerString);
 	public:
 		cRemoteTimers();

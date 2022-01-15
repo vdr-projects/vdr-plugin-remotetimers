@@ -1,555 +1,884 @@
 #include "i18n.h"
 
+#if VDRVERSNUM < 10507
 const tI18nPhrase Phrases[] = {
-{	"Remote Timers",
-	"Server Timer",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Edit timers on remote VDR",
-	"Timer eines anderen VDR bearbeiten",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Hide mainmenu entry",
-	"Hauptmenüeintrag verstecken",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Replace mainmenu \"Schedule\"",
-	"Hauptmenü \"Programm\" ersetzen",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Replace mainmenu \"Timers\"",
-	"Hauptmenü \"Timer\" ersetzen",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Server IP",
-	"Server IP",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Server port",
-	"Server Port",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Defaults for new timers",
-	"Voreinstellungen für neue Timer",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Location",
-	"Aufnahmeort",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"local",
-	"lokal",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"remote",
-	"Server",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"User ID",
-	"Benutzer-ID",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Settings for \"Timers\" menu",
-	"Einstellungen für Menü \"Timers\"",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Filter for user ID",
-	"Anzeige für Benutzer-ID",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Timers - User %d",
-	"Timer - Benutzer %d",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"RL",  // -> Indicator for (R)emote or (L)ocal timer in timers list
-	"SL",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Remote timers not available",
-	"Timer des Servers nicht verfügbar",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Updated remote timers list",
-	"Timerliste wurde neu geladen",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Timers are being edited remotely - please try again",
-	"Timerliste auf Server gesperrt - bitte nochmal",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Timer is recording - please deactivate it first",
-	"Timer nimmt gerade auf - bitte erst deaktivieren",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Timer already defined",
-	"Timer existiert bereits",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Timers modified remotely - please check remote timers",
-	"Timer auf Server verändert - bitte prüfen",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Unexpected error - please check remote timers",
-	"Unerwarteter Fehler - bitte Timer auf Server prüfen",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Lost SVDRP connection - please check remote timers",
-	"SVDRP-Verbindung verloren - bitte Timer auf Server prüfen",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
-{	"Timer is recording - can't move it to server",
-	"Timer nimmt gerade auf - auf Server verschieben nicht möglich",// Deutsch
-	"",// TODO Slovenski
-	"",// TODO Italiano
-	"",// TODO Nederlands
-	"",// TODO Portugues
-	"",// TODO Francais
-	"",// TODO Norsk
-	"",// TODO Finnish
-	"",// TODO Polski
-	"",// TODO Español
-	"",// TODO ÅëëçíéêÜ (Greek)
-	"",// TODO Svenska
-	"",// TODO Romaneste
-	"",// TODO Magyar
-	"",// TODO Català
-	"",// TODO ÀãááÚØÙ (Russian)
-	"",// TODO Hrvatski (Croatian)
-	"",// TODO Eesti
-	"",// TODO Dansk
-	"",// TODO Èesky (Czech)
-},
+// START I18N - automatically generated by po2i18n.pl
+  { "Defaults for new timers",
+    "Voreinstellungen für neue Timer",
+    "",
+    "Valori predefiniti per i nuovi timer",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Edit timers on remote VDR",
+    "Timer eines anderen VDR bearbeiten",
+    "",
+    "Modifica timer su VDR remoto",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Filter for user ID",
+    "Anzeige für Benutzer-ID",
+    "",
+    "Filtra per ID utente",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Hide mainmenu entry",
+    "Hauptmenüeintrag verstecken",
+    "",
+    "Nascondi voce nel menu principale",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Location",
+    "Aufnahmeort",
+    "",
+    "Posizione",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Lost SVDRP connection - please check remote timers",
+    "SVDRP-Verbindung verloren - bitte Timer auf Server prüfen",
+    "",
+    "Connessione SVDRP fallita - per favore verifica i timer remoti",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "RL",
+    "SL",
+    "",
+    "RL",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Remote Timers",
+    "Server Timer",
+    "",
+    "Timer remoti",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Remote timers not available",
+    "Timer des Servers nicht verfügbar",
+    "",
+    "Timer remoti non disponibili",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Replace mainmenu \"Schedule\"",
+    "Hauptmenü \"Programm\" ersetzen",
+    "",
+    "Sostituisci \"Programmi\" nel menu principale",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Replace mainmenu \"Timers\"",
+    "Hauptmenü \"Timer\" ersetzen",
+    "",
+    "Sostituisci \"Timer\" nel menu principale",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Server IP",
+    "Server IP",
+    "",
+    "IP server",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Server port",
+    "Server Port",
+    "",
+    "Porta server",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Settings for \"Timers\" menu",
+    "Einstellungen für Menü \"Timers\"",
+    "",
+    "Impostazioni per il menu \"Timer\"",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Timer already defined",
+    "Timer existiert bereits",
+    "",
+    "Timer già definito",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Timer is recording - can't move it to server",
+    "Timer nimmt gerade auf - auf Server verschieben nicht möglich",
+    "",
+    "Timer in registrazione - impossibile spostarlo al server",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Timer is recording - please deactivate it first",
+    "Timer nimmt gerade auf - bitte erst deaktivieren",
+    "",
+    "Timer in registrazione - per favore disattivarlo prima",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Timers - User %d",
+    "Timer - Benutzer %d",
+    "",
+    "Timer - Utente %d",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Timers are being edited remotely - please try again",
+    "Timerliste auf Server gesperrt - bitte nochmal",
+    "",
+    "I timer sono stati modificati da remoto - per favore prova ancora",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Timers modified remotely - please check remote timers",
+    "Timer auf Server verändert - bitte prüfen",
+    "",
+    "Timer modificati da remoto - per favore verifica i timer remoti",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Unexpected error - please check remote timers",
+    "Unerwarteter Fehler - bitte Timer auf Server prüfen",
+    "",
+    "Errore inatteso - per favore verifica i timer remoti",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "Updated remote timers list",
+    "Timerliste wurde neu geladen",
+    "",
+    "Aggiornato elenco timer remoti",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "User ID",
+    "Benutzer-ID",
+    "",
+    "ID utente",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "local",
+    "lokal",
+    "",
+    "locale",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+  { "remote",
+    "Server",
+    "",
+    "remoto",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+#if VDRVERSNUM >= 10307
+    "",
+#endif
+#if VDRVERSNUM >= 10313
+    "",
+#endif
+#if VDRVERSNUM >= 10316
+    "",
+#endif
+#if VDRVERSNUM >= 10342
+    "",
+#endif
+#if VDRVERSNUM >= 10502
+    "",
+#endif
+  },
+// END I18N - automatically generated by po2i18n.pl
 {	NULL }
 };
+#endif
