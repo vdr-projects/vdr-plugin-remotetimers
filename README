@@ -311,7 +311,9 @@ harddrive and subdirectories are network mounts or if VDR is at least
 version 1.7.10.
 
 The titles of the "Recording info" and "Edit recording" menus include
-the recording's size and length.
+the recording's size and length. Since VDR 1.7.28 it will also display the
+remaining disk space in minutes based on size and length of the currently
+selected recording.
 
 6. Credits:
 -----------

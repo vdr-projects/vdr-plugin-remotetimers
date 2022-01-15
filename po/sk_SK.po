@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: remotetimers0.1.4\n"
 "Report-Msgid-Bugs-To: <vdrdev@schmirler.de>\n"
 "POT-Creation-Date: 2012-06-07 01:07+0200\n"
-"PO-Revision-Date: 2011-03-02 21:12+0100\n"
+"PO-Revision-Date: 2012-06-18 20:24+0100\n"
 "Last-Translator: Milan Hrala <hrala.milan@gmail.com>\n"
 "Language-Team: Slovak <hrala.milan@gmail.com>\n"
 "Language: sk\n"
@@ -133,13 +133,13 @@ msgid "from svdrpservice"
 msgstr "zo svdrpservice"
 
 msgid "Map channels using"
-msgstr ""
+msgstr "Mapa pou¾ívaných kanálov"
 
 msgid "channel number"
-msgstr ""
+msgstr "èíslo kanálu"
 
 msgid "channel ID"
-msgstr ""
+msgstr "ID kanálu"
 
 msgid "Hide mainmenu entry"
 msgstr "Schova» v hlavnom menu"
@@ -222,3 +222,4 @@ msgstr "Stratené SVDRP spojenie - nemô¾e spusti» vzdialené zostrihanie"
 
 msgid "Remote timers not available"
 msgstr "Vzdialená plánovaè nedostupný"
+

@@ -1,6 +1,22 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
+2012-06-27: Version 0.1.7
+
+- If server recordings are mounted in a subdirectory of local video dir,
+  make server and other clients aware of changes made by this client.
+- Fixed occasionally missed video directory mounts during startup. Now getting
+  mtime and device id of .update file already in SetupParse(), i.e. before VDR
+  starts to scan recordings.
+- Updated Slovak translations (thanks to Milan Hrala)
+- Added vdr-1.7.28-remote_instant_recordings.patch to display remote timers
+  in skin LCARS' main menu view
+- Fixed RemoteTimers::ForEach service call
+- With 1.7.28 or newer, show remaining disk space in minutes based on size and
+  length of currently selected recording in menus "Recording info" and "Edit
+  recording".
+- With 1.7.28 or newer, calculate remaining disk space in minutes based on
+  size and length of all recordings on current filesystem.
 - Updated Italian translations (thanks to Diego Pierotto)
 - Updated the menu parts copied from VDR to 1.7.28
 - New option to map channels by number instead of channel id when syncing

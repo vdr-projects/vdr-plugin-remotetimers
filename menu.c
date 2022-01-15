@@ -58,9 +58,6 @@ namespace PluginRemoteTimers {
 
 //#define MAXWAIT4EPGINFO   3 // seconds
 //#define MODETIMEOUT       3 // seconds
-#ifdef REMOTETIMERS_DISKSPACE
-#define DISKSPACECHEK     5 // seconds between disk space checks
-#endif
 #define NEWTIMERLIMIT   120 // seconds until the start time of a new timer created from the Schedule menu,
                             // within which it will go directly into the "Edit timer" menu to allow
                             // further parameter settings
@@ -164,9 +161,9 @@ cTimer* GetBestMatch(const cEvent *Event, int UserMask, int *Match, int *Type, b
 }
 
 
-#ifdef REMOTETIMERS_DISKSPACE
 // --- cFreeDiskSpace --------------------------------------------------------
 
+#define DISKSPACECHEK     5 // seconds between disk space checks
 #define MB_PER_MINUTE 25.75 // this is just an estimate!
 
 class cFreeDiskSpace {
@@ -179,6 +176,9 @@ private:
   static int VideoDiskSpace(const char *Dir, int *FreeMB);
   static int DeletedFileSizeMB(const char *Dir);
 #endif
+#if VDRVERSNUM >= 10728
+  static double MBperMinute(const char* Dir);
+#endif
 public:
 #if VDRVERSNUM >= 10515
   static bool HasChanged(const char *SubDir, bool ForceCheck = false);
@@ -186,6 +186,9 @@ public:
   static bool HasChanged(bool ForceCheck = false);
 #endif
   static const char *FreeDiskSpaceString() { return freeDiskSpaceString; }
+#if VDRVERSNUM >= 10728
+  static cString FreeDiskSpaceString(const cRecording* recording);
+#endif
   };
 
 time_t cFreeDiskSpace::lastDiskSpaceCheck = 0;
@@ -203,8 +206,21 @@ bool cFreeDiskSpace::HasChanged(const char *SubDir, bool ForceCheck)
   path = cString::sprintf("%s/%s", VideoDirectory, *path);
   if (ForceCheck || time(NULL) - lastDiskSpaceCheck > DISKSPACECHEK || !EntriesOnSameFileSystem(path, lastPath)) {
      int FreeMB;
+     int Percent;
+     int MBperMinute = -1;
      lastPath = path;
-     int Percent = IsOnVideoDirectoryFileSystem(path) ? ::VideoDiskSpace(&FreeMB) : VideoDiskSpace(path, &FreeMB);
+     if (IsOnVideoDirectoryFileSystem(path)) {
+        Percent = ::VideoDiskSpace(&FreeMB);
+#if VDRVERSNUM >= 10728
+        MBperMinute = Recordings.MBperMinute();
+#endif
+     }
+     else {
+        Percent = VideoDiskSpace(path, &FreeMB);
+#if VDRVERSNUM >= 10728
+        MBperMinute = cFreeDiskSpace::MBperMinute(path);
+#endif
+     }
 
 #else
 
@@ -216,7 +232,13 @@ bool cFreeDiskSpace::HasChanged(bool ForceCheck)
 #endif
      lastDiskSpaceCheck = time(NULL);
      if (ForceCheck || FreeMB != lastFreeMB) {
-        int Minutes = int(double(FreeMB) / MB_PER_MINUTE);
+        int Minutes;
+#if VDRVERSNUM >= 10728
+        if (MBperMinute > 0)
+           Minutes = int(double(FreeMB) / MBperMinute);
+        else
+#endif
+           Minutes = int(double(FreeMB) / MB_PER_MINUTE);
         int Hours = Minutes / 60;
         Minutes %= 60;
         freeDiskSpaceString = cString::sprintf("%s %d%% - %2d:%02d %s", tr("Disk"), Percent, Hours, Minutes, tr("free"));
@@ -254,7 +276,45 @@ int cFreeDiskSpace::DeletedFileSizeMB(const char *Dir)
   return size;
 }
 #endif
-#endif //REMOTETIMERS_DISKSPACE
+#if VDRVERSNUM >= 10728
+double cFreeDiskSpace::MBperMinute(const char* Dir)
+{
+  int size = 0;
+  int length = 0;
+  cThreadLock RecordingsLock(&Recordings);
+  for (cRecording *recording = Recordings.First(); recording; recording = Recordings.Next(recording)) {
+      if (EntriesOnSameFileSystem(Dir, recording->FileName())) {
+         int FileSizeMB = recording->FileSizeMB();
+         if (FileSizeMB > 0) {
+            int LengthInSeconds = recording->LengthInSeconds();
+            if (LengthInSeconds > 0) {
+               size += FileSizeMB;
+               length += LengthInSeconds;
+               }
+            }
+         }
+      }
+  return (size && length) ? double(size) * 60 / length : -1;
+}
+
+cString cFreeDiskSpace::FreeDiskSpaceString(const cRecording* recording)
+{
+  int minutes = max(0, (recording->LengthInSeconds() + 30) / 60);
+  int sizeMB = max(0, recording->FileSizeMB());
+  cString freeString;
+  if (minutes > 0 && sizeMB > 0) {
+     int freeMB;
+     VideoDiskSpace(recording->FileName(), &freeMB);
+     int freeMinutes = int(double(freeMB) * minutes / sizeMB);
+     freeString = cString::sprintf("%d MB - %d:%02d - %d:%02d %s", sizeMB, minutes / 60, minutes % 60, freeMinutes / 60, freeMinutes % 60, tr("free"));
+  }
+  else if (sizeMB >= 0)
+     freeString = cString::sprintf("%d MB", sizeMB);
+  else
+     freeString = "";
+  return freeString;
+}
+#endif
 
 #if APIVERSNUM < 10712
 
@@ -2146,15 +2206,20 @@ cMenuRecording::cMenuRecording(const cRecording *Recording, bool WithButtons)
 :cOsdMenu(tr("Recording info"))
 {
 #if VDRVERSNUM >= 10728
-  SetMenuCategory(mcRecording);
+  // with mcRecording some skins would add free diskspace to title
+  SetMenuCategory(mcPlugin);
 #endif
   recording = Recording;
   withButtons = WithButtons;
   if (withButtons)
      SetHelp(tr("Button$Play"), tr("Button$Rewind"));
+#if VDRVERSNUM < 10728
   cIndexFile index(Recording->FileName(), false);
   int last = index.Last();
   SetTitle(cString::sprintf("%s - %d MB %s%s", tr("Recording info"), DirSizeMB(Recording->FileName()), last >= 0 ? "- " : "", last >= 0 ? *IndexToHMSF(last) : ""));
+#else
+  SetTitle(cString::sprintf("%s - %s", tr("Recording info"), *cFreeDiskSpace::FreeDiskSpaceString(Recording)));
+#endif
 }
 
 void cMenuRecording::Display(void)
@@ -2233,7 +2298,8 @@ cMenuEditRecording::cMenuEditRecording(const cRecording *Recording)
 :cOsdMenu(trREMOTETIMERS("Edit recording"), 12)
 {
 #if VDRVERSNUM >= 10728
-  SetMenuCategory(mcRecording);
+  // with mcRecording some skins would add free diskspace to title
+  SetMenuCategory(mcPlugin);
 #endif
   // Must be locked against Recordings
 #if VDRVERSNUM < 10721
@@ -2249,9 +2315,13 @@ cMenuEditRecording::cMenuEditRecording(const cRecording *Recording)
   subMenuFolder = NULL;
   file = NULL;
   SetHelpKeys();
+#if VDRVERSNUM < 10728
   cIndexFile index(*fileName, false);
   int last = index.Last();
   SetTitle(cString::sprintf("%s - %d MB %s%s", trREMOTETIMERS("Edit recording"), DirSizeMB(*fileName), last >= 0 ? "- " : "", last >= 0 ? *IndexToHMSF(last) : ""));
+#else
+  SetTitle(cString::sprintf("%s - %s", trREMOTETIMERS("Edit recording"), *cFreeDiskSpace::FreeDiskSpaceString(Recording)));
+#endif
   Add(new cMenuEditIntItem(tr("Priority"), &priority, 0, MAXPRIORITY));
   Add(new cMenuEditIntItem(tr("Lifetime"), &lifetime, 0, MAXLIFETIME));
   Add(new cMenuEditUserItem(trREMOTETIMERS("User ID"), &tmpUser));
@@ -2659,7 +2729,8 @@ cMenuRecordings::cMenuRecordings(const char *Base, int Level, bool OpenSubMenus)
 #endif
 {
 #if VDRVERSNUM >= 10728
-  SetMenuCategory(mcRecording);
+  // with mcRecording some skins would add free diskspace to title
+  SetMenuCategory(mcPlugin);
 #endif
   base = Base ? strdup(Base) : NULL;
   level = ::Setup.RecordingDirs ? Level : -1;
@@ -2669,9 +2740,7 @@ cMenuRecordings::cMenuRecordings(const char *Base, int Level, bool OpenSubMenus)
   helpKeys = -1;
   Display(); // this keeps the higher level menus from showing up briefly when pressing 'Back' during replay
   Set();
-#ifdef REMOTETIMERS_DISKSPACE
   SetFreeDiskDisplay(true);
-#endif
   OpenSubMenus |= replayEnded;
   replayEnded = false;
   if (Current() < 0)
@@ -2688,7 +2757,6 @@ cMenuRecordings::~cMenuRecordings()
   free(base);
 }
 
-#ifdef REMOTETIMERS_DISKSPACE
 bool cMenuRecordings::SetFreeDiskDisplay(bool Force)
 {
 #if VDRVERSNUM >= 10515
@@ -2705,7 +2773,6 @@ bool cMenuRecordings::SetFreeDiskDisplay(bool Force)
      }
   return false;
 }
-#endif
 
 #define B_RELEASE 0x100
 void cMenuRecordings::SetHelpKeys(void)
@@ -2776,9 +2843,7 @@ void cMenuRecordings::Set(bool Refresh)
          }
       }
   free(LastItemText);
-#ifdef REMOTETIMERS_DISKSPACE
   Refresh |= SetFreeDiskDisplay(Refresh);
-#endif
   if (Refresh)
      Display();
 }
@@ -2917,9 +2982,8 @@ eOSState cMenuRecordings::Delete(void)
               Recordings.DelByName(ri->FileName());
               cOsdMenu::Del(Current());
               SetHelpKeys();
-#ifdef REMOTETIMERS_DISKSPACE
               SetFreeDiskDisplay(true);
-#else
+#if VDRVERSNUM >= 10728
               cVideoDiskUsage::ForceCheck();
 #endif
               Display();

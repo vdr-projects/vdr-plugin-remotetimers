@@ -29,7 +29,7 @@
 #include "watcher.h"
 #include "i18n.h"
 
-static const char *VERSION        = "0.1.6-git20120608";
+static const char *VERSION        = "0.1.7";
 static const char *DESCRIPTION    = trNOOP("Edit timers on remote VDR");
 static const char *MAINMENUENTRY  = trNOOP("Remote Timers");
 
@@ -94,7 +94,8 @@ bool cPluginRemotetimers::Start(void)
 #if VDRVERSNUM < 10507
   RegisterI18n(Phrases);
 #endif
-  cUpdateWatcher::GetInstance()->Reconfigure();
+  if (RemoteTimersSetup.watchUpdate)
+     cUpdateWatcher::GetInstance()->Start();
   return true;
 }
 
@@ -140,7 +141,13 @@ cMenuSetupPage *cPluginRemotetimers::SetupMenu(void)
 bool cPluginRemotetimers::SetupParse(const char *Name, const char *Value)
 {
   // Parse your own setup parameters and store their values.
-  return RemoteTimersSetup.Parse(Name, Value);
+  bool result = RemoteTimersSetup.Parse(Name, Value);
+  // We need to get the timestamp and device id of .update file before
+  // recordings are loaded. We could miss something if we waited until
+  // Initialize().
+  if (!strcasecmp(Name, "serverDir"))
+     cUpdateWatcher::GetInstance()->Initialize();
+  return result;
 }
 
 #define INSTANT_REC_EPG_LOOKAHEAD 60 // seconds to look into the EPG data for an instant recording
@@ -225,7 +232,8 @@ bool cPluginRemotetimers::Service(const char *Id, void *Data)
   if (strcmp(Id, "RemoteTimers::ForEach-v1.0") == 0) {
      if (Data) {
         cRemoteTimer *t = *(cRemoteTimer **) Data;
-	t = t ? RemoteTimers.First() : RemoteTimers.Next(t);
+        cRemoteTimer **result = (cRemoteTimer **) Data;
+        *result = t ? RemoteTimers.Next(t) : RemoteTimers.First();
      }
      return true;
   }

@@ -38,7 +38,7 @@ and recompile.
  #include "transfer.h"
  #include "videodir.h"
  
-+#include "remotetimers.h"
++#include "PLUGINS/src/remotetimers/remotetimers.h"
 +
  #define MAXWAIT4EPGINFO   3 // seconds
  #define MODETIMEOUT       3 // seconds
@@ -94,31 +94,3 @@ and recompile.
    static time_t LastNoDiskSpaceMessage = 0;
    int FreeMB = 0;
    if (Timer) {
---- /dev/null	2008-06-27 20:13:35.796049750 +0200
-+++ remotetimers.h	2008-06-26 21:20:49.000000000 +0200
-@@ -0,0 +1,25 @@
-+/*
-+ * remotetimers.h: Public interface of the plugin's services
-+ *
-+ * See the README file for copyright information and how to reach the author.
-+ */
-+
-+#ifndef _SERVICE__H
-+#define _SERVICE__H
-+
-+#ifndef __TIMERS_H
-+#include <vdr/timer.h>
-+#include <vdr/epg.h>
-+#endif
-+
-+struct RemoteTimers_InstantRecording_v1_0 {
-+//in
-+	const cTimer	*timer;
-+	bool		pause;
-+	const cEvent	*event;
-+//out
-+	cString		name;
-+	cString		fileName;
-+};
-+
-+#endif //_SERVICE__H

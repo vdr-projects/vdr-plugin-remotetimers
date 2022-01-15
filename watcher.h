@@ -25,13 +25,19 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <vdr/thread.h>
+#include <vdr/tools.h>
 
 class cUpdateWatcher: private cThread {
+		friend class cPluginRemotetimers;
 	private:
 		static cUpdateWatcher* updateWatcher;
+
 		cCondWait condWait;
-		const char* serverUpdateFile;
-		bool inSubDir;
+		cString   serverUpdateFile;
+		time_t    serverLastModifiedTime;
+		cString   clientUpdateFile;
+		dev_t     clientLastDev;
+		bool      inSubDir;
 
 		static dev_t DeviceId(const char* FileName);
 	protected:
@@ -40,6 +46,7 @@ class cUpdateWatcher: private cThread {
 		static cUpdateWatcher* GetInstance();
 		static void DeleteInstance();
 
+		void Initialize();
 		void Reconfigure();
 		cUpdateWatcher();
 		virtual ~cUpdateWatcher();

@@ -43,7 +43,9 @@ void cUpdateWatcher::DeleteInstance()
 
 cUpdateWatcher::cUpdateWatcher(): cThread("remotetimers update file watcher")
 {
-	serverUpdateFile = NULL;
+	serverLastModifiedTime = 0;
+	clientUpdateFile = AddDirectory(VideoDirectory, ".update");
+	clientLastDev = 0;
 	inSubDir = false;
 }
 
@@ -51,7 +53,26 @@ cUpdateWatcher::~cUpdateWatcher()
 {
 	condWait.Signal();
 	Cancel(1);
-	free((void *) serverUpdateFile);
+}
+
+void cUpdateWatcher::Initialize()
+{
+	inSubDir = RemoteTimersSetup.serverDir[0];
+	if (inSubDir)
+	{
+		// server recordings in subdir: check mtime of subdir/.update
+		char *tmpDir = strdup(RemoteTimersSetup.serverDir);
+		tmpDir = ExchangeChars(tmpDir, true);
+		serverUpdateFile = AddDirectory(VideoDirectory, AddDirectory(tmpDir, ".update"));
+	        serverLastModifiedTime = LastModifiedTime(serverUpdateFile);
+		free(tmpDir);
+	}
+	else
+	{
+		// video dir on network share: check device id of .update
+		serverUpdateFile = NULL;
+		clientLastDev = DeviceId(clientUpdateFile);
+	}
 }
 
 void cUpdateWatcher::Reconfigure()
@@ -61,23 +82,9 @@ void cUpdateWatcher::Reconfigure()
 		condWait.Signal();
 		Cancel(1);
 	}
-	free((void *) serverUpdateFile);
-	serverUpdateFile = NULL;
+	Initialize();
 	if (RemoteTimersSetup.watchUpdate)
 	{
-		inSubDir = RemoteTimersSetup.serverDir[0];
-		if (inSubDir)
-		{
-			char *tmpDir = strdup(RemoteTimersSetup.serverDir);
-			tmpDir = ExchangeChars(tmpDir, true);
-			serverUpdateFile = strdup(AddDirectory(VideoDirectory, AddDirectory(tmpDir, ".update")));
-			free(tmpDir);
-		}
-		else
-		{
-			serverUpdateFile = strdup(AddDirectory(VideoDirectory, ".update"));
-		}
-		dsyslog("remotetimers update file watcher now monitoring '%s'", serverUpdateFile);
 		Start();
 	}
 }
@@ -93,27 +100,33 @@ dev_t cUpdateWatcher::DeviceId(const char* FileName)
 void cUpdateWatcher::Action()
 {
 	SetPriority(19);
-	time_t tLast = inSubDir ? LastModifiedTime(serverUpdateFile) : 0;
-	dev_t dLast = inSubDir ? 0 : DeviceId(serverUpdateFile);
+	dsyslog("remotetimers update file watcher now monitoring '%s'", inSubDir ? *serverUpdateFile : *clientUpdateFile);
 
 	while (!condWait.Wait(WATCHER_INTERVALL_MS) && Running())
 	{
 		if (inSubDir)
 		{
 			time_t t = LastModifiedTime(serverUpdateFile);
-			if (t != tLast)
+			if (t != serverLastModifiedTime)
 			{
+				// server .update changed. Update recordings
 				Recordings.Update();
-				tLast = t;
+				serverLastModifiedTime = t;
+			}
+			if (t < LastModifiedTime(clientUpdateFile))
+			{
+				// client .update changed. Touch server .update
+				TouchFile(serverUpdateFile);
+				serverLastModifiedTime = LastModifiedTime(serverUpdateFile);
 			}
 		}
 		else
 		{
-			dev_t d = DeviceId(serverUpdateFile);
-			if (d != dLast)
+			dev_t d = DeviceId(clientUpdateFile);
+			if (d != clientLastDev)
 			{
 				Recordings.Update();
-				dLast = d;
+				clientLastDev = d;
 			}
 		}
 	}
