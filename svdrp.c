@@ -157,7 +157,7 @@ eRemoteTimersState cRemoteTimers::Refresh() {
 	SvdrpCommand_v1_0 cmd;
 	eRemoteTimersState state;
 
-	cmd.command = "LSTT id\r\n";
+	cmd.command = RemoteTimersSetup.useChannelId ? "LSTT id\r\n" : "LSTT\r\n";
 	cSvdrp::GetInstance()->Send(&cmd);
 
 	Clear();
@@ -343,14 +343,14 @@ unsigned short cRemoteTimers::CmdDELT(cRemoteTimer *Timer) {
 unsigned short cRemoteTimers::CmdMODT(cRemoteTimer *Timer) {
 	SvdrpCommand_v1_0 cmd;
 
-	cmd.command = cString::sprintf("MODT %d %s", Timer->Id(), *Timer->ToText(true));
+	cmd.command = cString::sprintf("MODT %d %s", Timer->Id(), *Timer->ToText(RemoteTimersSetup.useChannelId));
 	return cSvdrp::GetInstance()->Send(&cmd);
 }
 
 unsigned short cRemoteTimers::CmdNEWT(cRemoteTimer *Timer, int &Number) {
 	SvdrpCommand_v1_0 cmd;
 
-	cmd.command = cString::sprintf("NEWT %s", *Timer->ToText(true));
+	cmd.command = cString::sprintf("NEWT %s", *Timer->ToText(RemoteTimersSetup.useChannelId));
 	cSvdrp::GetInstance()->Send(&cmd);
 
 	Number = (cmd.responseCode == 250) ? atoi(cmd.reply.First()->Text()) : -1;
@@ -360,7 +360,7 @@ unsigned short cRemoteTimers::CmdNEWT(cRemoteTimer *Timer, int &Number) {
 unsigned short cRemoteTimers::CmdLSTT(int Number, char*& s) {
 	SvdrpCommand_v1_0 cmd;
 
-	cmd.command = cString::sprintf("LSTT id %d\r\n", Number);
+	cmd.command = cString::sprintf("LSTT %s%d\r\n", RemoteTimersSetup.useChannelId ? "id " : "", Number);
 	cSvdrp::GetInstance()->Send(&cmd);
 
 	s = (cmd.responseCode == 250) ? strdup(cmd.reply.First()->Text()) : NULL;

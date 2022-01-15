@@ -1,6 +1,17 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
+- Updated Italian translations (thanks to Diego Pierotto)
+- Updated the menu parts copied from VDR to 1.7.28
+- New option to map channels by number instead of channel id when syncing
+  between client and server. Useful if you want to view and record different
+  variants of a simulcast channel on client and server (e.g. HD/SD or DVB-T/
+  DVB-S). Requires channels to be in same order (suggested by woz@vdrportal)
+- API changes of VDR 1.7.28
+- Updated MainMenuHooks patch (thanks to Manuel Reimer)
+- Fixed compile error due to unknown type 'tI18nPhrase'
+- Released recordings must be re-read or they reappear in recordings menu
+
 2011-10-05: Version 0.1.6
 
 - Adapted handler of SVDRP command LSTR to VDR 1.7.21+ format, including

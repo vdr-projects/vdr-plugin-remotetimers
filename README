@@ -102,6 +102,21 @@ SVDRP port on server. Since VDR 1.7.15 the default port is 6419, before
 it was 2001. The special value 0 uses the default port configured in
 svdrpservice.
 
+- Map channels using
+The default is "channel ID" and this should not be changed unless you are
+absolutely sure that you know what you are doing. Channels are identified
+using a unique ID. A certain channel may have different channel number on
+client and server. But what if you want to view and record different
+variants of a simulcast channel on client and server?
+* You prefer watching live TV in HD but want to record in SD
+* You have one client which can't do HD but want to record everything in HD
+* Your client uses a local DVB-T card for live TV, the server has DVB-S
+When you select "channel number", timers will stick to the same channel
+number, no matter if it actually belongs to the same channel or not. So
+it's probably a good idea to keep channels in the same order on client
+and server. Just swap the positions of the HD/SD channels or use the
+same channel numbers for corresponding DVB-T/DVB-S channels.
+
 - Hide mainmenu entry
 Should be obvious ;-)
 

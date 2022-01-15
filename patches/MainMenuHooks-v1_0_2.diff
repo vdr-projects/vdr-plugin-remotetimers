@@ -1,6 +1,9 @@
 This is a "patch" for the Video Disk Recorder (VDR).
 
 * History
+2012-04-06: Version 1.0.2
+- Update für aktuelle VDR-Entwickler-Versionen (Manuel Reimer)
+
 2010-10-15: Version 1.0.1
 - return a cOsdObject instead of its subclass cOsdMenu (thanks to
   Joe_D@vdrportal)
@@ -168,14 +171,11 @@ diff -ru vdr-1.6.0.orig/menu.c vdr-1.6.0/menu.c
 diff -ru vdr-1.6.0.orig/config.h vdr-1.6.0/config.h
 --- vdr-1.6.0.orig/config.h	2008-03-23 11:26:10.000000000 +0100
 +++ vdr-1.6.0/config.h	2010-10-11 20:32:25.000000000 +0200
-@@ -36,6 +36,10 @@
+@@ -36,3 +36,7 @@
  // plugins to work with newer versions of the core VDR as long as no
  // VDR header files have changed.
- 
++
 +// The MainMenuHook Patch's version number:
 +#define MAINMENUHOOKSVERSION "1.0.1"
 +#define MAINMENUHOOKSVERSNUM 10001  // Version * 10000 + Major * 100 + Minor
-+
- #define MAXPRIORITY 99
- #define MAXLIFETIME 99
  

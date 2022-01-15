@@ -34,6 +34,7 @@ struct cRemoteTimersSetup {
 	int replaceRecordings;
 	char serverIp[MAX_IP_LENGTH];
 	int serverPort;
+	int useChannelId;
 	int swapOkBlue;
 	int showProgressBar;
 	int userFilterSchedule;

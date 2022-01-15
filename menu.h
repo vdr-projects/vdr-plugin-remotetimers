@@ -35,6 +35,7 @@
 namespace PluginRemoteTimers {
 
 #define MSG_UNAVAILABLE trNOOP("Remote timers not available")
+#define REMOTETIMERS_DISKSPACE
 
 cTimer* GetBestMatch(const cEvent *Event, int UserMask, int *Match, int *Type, bool *Remote);
 
@@ -189,7 +190,9 @@ private:
   int level;
   int recordingsState;
   int helpKeys;
+#ifdef REMOTETIMERS_DISKSPACE
   bool SetFreeDiskDisplay(bool Force = false);
+#endif
   void SetHelpKeys(void);
   void Set(bool Refresh = false);
   bool Open(bool OpenSubMenus = false);

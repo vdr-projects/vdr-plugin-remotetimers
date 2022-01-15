@@ -2,7 +2,7 @@
  * Copyright (C) 2008-2011 Frank Schmirler <vdr@schmirler.de>
  *
  * Major parts copied from VDR's menu.c
- * $Id: menu.c 2.32 2011/08/27 11:05:33 kls Exp $
+ * $Id: menu.c 2.54 2012/05/12 13:08:23 kls Exp $
  * Copyright (C) 2000, 2003, 2006, 2008 Klaus Schmidinger
  *
  * This file is part of VDR Plugin remotetimers.
@@ -58,7 +58,9 @@ namespace PluginRemoteTimers {
 
 //#define MAXWAIT4EPGINFO   3 // seconds
 //#define MODETIMEOUT       3 // seconds
+#ifdef REMOTETIMERS_DISKSPACE
 #define DISKSPACECHEK     5 // seconds between disk space checks
+#endif
 #define NEWTIMERLIMIT   120 // seconds until the start time of a new timer created from the Schedule menu,
                             // within which it will go directly into the "Edit timer" menu to allow
                             // further parameter settings
@@ -71,8 +73,14 @@ namespace PluginRemoteTimers {
 //#define CAMRESPONSETIMEOUT  5 // seconds to wait for a response from a CAM
 //#define MINFREEDISK       300 // minimum free disk space (in MB) required to start recording
 //#define NODISKSPACEDELTA  300 // seconds between "Not enough disk space to start recording!" messages
+#define MAXCHNAMWIDTH      16
 
 #define CHNUMWIDTH  (numdigits(Channels.MaxNumber()) + 1)
+#if VDRVERSNUM < 10728
+#define CHNAMWIDTH  7
+#else
+#define CHNAMWIDTH  (min(MAXCHNAMWIDTH, Channels.MaxShortChannelNameLength() + 1))
+#endif
 
 #define AUX_STARTTAG "<remotetimers>"
 #define AUX_ENDTAG "</remotetimers>"
@@ -156,6 +164,7 @@ cTimer* GetBestMatch(const cEvent *Event, int UserMask, int *Match, int *Type, b
 }
 
 
+#ifdef REMOTETIMERS_DISKSPACE
 // --- cFreeDiskSpace --------------------------------------------------------
 
 #define MB_PER_MINUTE 25.75 // this is just an estimate!
@@ -245,6 +254,7 @@ int cFreeDiskSpace::DeletedFileSizeMB(const char *Dir)
   return size;
 }
 #endif
+#endif //REMOTETIMERS_DISKSPACE
 
 #if APIVERSNUM < 10712
 
@@ -962,6 +972,9 @@ public:
 cMenuTimers::cMenuTimers(void)
 :cOsdMenu(tr("Timers"), 2, CHNUMWIDTH + 1, 10, 6, 6)
 {
+#if VDRVERSNUM >= 10728
+  SetMenuCategory(mcTimer);
+#endif
   helpKeys = -1;
   userFilter = USER_FROM_SETUP(RemoteTimersSetup.userFilterTimers);
   currentItem = NULL;
@@ -1213,6 +1226,9 @@ eOSState cMenuTimers::ProcessKey(eKeys Key)
 cMenuEvent::cMenuEvent(const cEvent *Event, bool CanSwitch, bool Buttons)
 :cOsdMenu(tr("Event"))
 {
+#if VDRVERSNUM >= 10728
+  SetMenuCategory(mcEvent);
+#endif
   event = Event;
   if (event) {
      cChannel *channel = Channels.GetByChannelID(event->ChannelID(), true);
@@ -1345,13 +1361,18 @@ bool cMenuScheduleItem::Update(bool Force)
 #if VDRVERSNUM < 10504
 #define Utf8SymChars(a,b) b
 #endif
+#if VDRVERSNUM < 10728
+#define CSN_SYMBOLS 6
+#else
+#define CSN_SYMBOLS 999
+#endif
      if (channel && withDate)
-        buffer = cString::sprintf("%d\t%.*s\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, 6), csn, Utf8SymChars(csn, 6), *eds, *event->GetTimeString(), t, v, r, event->Title());
+        buffer = cString::sprintf("%d\t%.*s\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, Utf8SymChars(eds, 6), *eds, *event->GetTimeString(), t, v, r, event->Title());
      else if (channel) {
 	if (withBar && RemoteTimersSetup.showProgressBar) {
 	   int progress = (time(NULL) - event->StartTime()) * MAXPROGRESS / event->Duration();
 	   progress = progress < 0 ? 0 : progress >= MAXPROGRESS ? MAXPROGRESS - 1 : progress;
-           buffer = cString::sprintf("%d\t%.*s\t%s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, 6), csn, *event->GetTimeString(), ProgressBar[progress], t, v, r, event->Title());
+           buffer = cString::sprintf("%d\t%.*s\t%s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, CSN_SYMBOLS), csn, *event->GetTimeString(), ProgressBar[progress], t, v, r, event->Title());
 	   }
 	else
            buffer = cString::sprintf("%d\t%.*s\t%s\t%c%c%c\t%s", channel->Number(), Utf8SymChars(csn, 6), csn, *event->GetTimeString(), t, v, r, event->Title());
@@ -1389,8 +1410,11 @@ int cMenuWhatsOn::currentChannel = 0;
 const cEvent *cMenuWhatsOn::scheduleEvent = NULL;
 
 cMenuWhatsOn::cMenuWhatsOn(const cSchedules *Schedules, bool Now, int CurrentChannelNr)
-:cOsdMenu(Now ? tr("What's on now?") : tr("What's on next?"), CHNUMWIDTH, 7, 6, 4, 4)
+:cOsdMenu(Now ? tr("What's on now?") : tr("What's on next?"), CHNUMWIDTH, CHNAMWIDTH, 6, 4, 4)
 {
+#if VDRVERSNUM >= 10728
+  SetMenuCategory(mcSchedule);
+#endif
   now = Now;
   helpKeys = -1;
   timerState = 0;
@@ -1611,6 +1635,9 @@ public:
 cMenuSchedule::cMenuSchedule(void)
 :cOsdMenu("")
 {
+#if VDRVERSNUM >= 10728
+  SetMenuCategory(mcSchedule);
+#endif
   now = next = false;
   otherChannel = 0;
   helpKeys = -1;
@@ -1679,7 +1706,7 @@ void cMenuSchedule::PrepareScheduleThisThis(const cEvent *Event, const cChannel 
 void cMenuSchedule::PrepareScheduleThisAll(const cEvent *Event, const cChannel *Channel)
 {
   Clear();
-  SetCols(CHNUMWIDTH, 7, 7, 6, 4);
+  SetCols(CHNUMWIDTH, CHNAMWIDTH, 7, 6, 4);
   cString title(tr("This event - all channels"));
   if (userFilter != 0)
      title = cString::sprintf("%s - %s %d", *title, trREMOTETIMERS("User"), userFilter);
@@ -1701,7 +1728,7 @@ void cMenuSchedule::PrepareScheduleThisAll(const cEvent *Event, const cChannel *
 void cMenuSchedule::PrepareScheduleAllAll(const cEvent *Event, const cChannel *Channel)
 {
   Clear();
-  SetCols(CHNUMWIDTH, 7, 7, 6, 4);
+  SetCols(CHNUMWIDTH, CHNAMWIDTH, 7, 6, 4);
   cString title(tr("All events - all channels"));
   if (userFilter != 0)
      title = cString::sprintf("%s - %s %d", *title, trREMOTETIMERS("User"), userFilter);
@@ -2118,6 +2145,9 @@ public:
 cMenuRecording::cMenuRecording(const cRecording *Recording, bool WithButtons)
 :cOsdMenu(tr("Recording info"))
 {
+#if VDRVERSNUM >= 10728
+  SetMenuCategory(mcRecording);
+#endif
   recording = Recording;
   withButtons = WithButtons;
   if (withButtons)
@@ -2202,6 +2232,9 @@ public:
 cMenuEditRecording::cMenuEditRecording(const cRecording *Recording)
 :cOsdMenu(trREMOTETIMERS("Edit recording"), 12)
 {
+#if VDRVERSNUM >= 10728
+  SetMenuCategory(mcRecording);
+#endif
   // Must be locked against Recordings
 #if VDRVERSNUM < 10721
   priority = Recording->priority;
@@ -2625,6 +2658,9 @@ cMenuRecordings::cMenuRecordings(const char *Base, int Level, bool OpenSubMenus)
 :cOsdMenu(Base ? Base : tr("Recordings"), 9, 6, 6)
 #endif
 {
+#if VDRVERSNUM >= 10728
+  SetMenuCategory(mcRecording);
+#endif
   base = Base ? strdup(Base) : NULL;
   level = ::Setup.RecordingDirs ? Level : -1;
   if (level <= 0 && !replayEnded)
@@ -2633,7 +2669,9 @@ cMenuRecordings::cMenuRecordings(const char *Base, int Level, bool OpenSubMenus)
   helpKeys = -1;
   Display(); // this keeps the higher level menus from showing up briefly when pressing 'Back' during replay
   Set();
+#ifdef REMOTETIMERS_DISKSPACE
   SetFreeDiskDisplay(true);
+#endif
   OpenSubMenus |= replayEnded;
   replayEnded = false;
   if (Current() < 0)
@@ -2650,6 +2688,7 @@ cMenuRecordings::~cMenuRecordings()
   free(base);
 }
 
+#ifdef REMOTETIMERS_DISKSPACE
 bool cMenuRecordings::SetFreeDiskDisplay(bool Force)
 {
 #if VDRVERSNUM >= 10515
@@ -2666,6 +2705,7 @@ bool cMenuRecordings::SetFreeDiskDisplay(bool Force)
      }
   return false;
 }
+#endif
 
 #define B_RELEASE 0x100
 void cMenuRecordings::SetHelpKeys(void)
@@ -2736,7 +2776,9 @@ void cMenuRecordings::Set(bool Refresh)
          }
       }
   free(LastItemText);
+#ifdef REMOTETIMERS_DISKSPACE
   Refresh |= SetFreeDiskDisplay(Refresh);
+#endif
   if (Refresh)
      Display();
 }
@@ -2774,7 +2816,11 @@ eOSState cMenuRecordings::Play(void)
      else {
         cRecording *recording = GetRecording(ri);
         if (recording) {
+#if VDRVERSNUM < 10728
            cReplayControl::SetRecording(recording->FileName(), recording->Title());
+#else
+           cReplayControl::SetRecording(recording->FileName());
+#endif
 	   // use our own replay control which returns to this recordings menu
 	   cControl::Shutdown();
 	   cControl::Launch(new cRemoteTimersReplayControl(cMenuMain::IsOpen()));
@@ -2818,6 +2864,8 @@ eOSState cMenuRecordings::Delete(void)
         if (recording) {
 	   if (cMenuEditRecording::UpdateUser(recording, ri->User() ^ USER_MASK(userFilter))) {
               cReplayControl::ClearLastReplayed(ri->FileName());
+              Recordings.Del(recording);
+              Recordings.AddByName(ri->FileName());
               cOsdMenu::Del(Current());
               SetHelpKeys();
               Display();
@@ -2848,16 +2896,32 @@ eOSState cMenuRecordings::Delete(void)
            }
         cRecording *recording = GetRecording(ri);
         if (recording) {
+#if VDRVERSNUM >= 10724
+           if (cCutter::Active(ri->FileName())) {
+              if (Interface->Confirm(tr("Recording is being edited - really delete?"))) {
+                 cCutter::Stop();
+                 recording = Recordings.GetByName(ri->FileName()); // cCutter::Stop() might have deleted it if it was the edited version
+                 // we continue with the code below even if recording is NULL,
+                 // in order to have the menu updated etc.
+                 }
+              else
+                 return osContinue;
+              }
+#endif
 #if VDRVERSNUM >= 10515
            if (cReplayControl::NowReplaying() && strcmp(cReplayControl::NowReplaying(), ri->FileName()) == 0)
               cControl::Shutdown();
 #endif
-           if (recording->Delete()) {
+           if (!recording || recording->Delete()) {
               cReplayControl::ClearLastReplayed(ri->FileName());
               Recordings.DelByName(ri->FileName());
               cOsdMenu::Del(Current());
               SetHelpKeys();
+#ifdef REMOTETIMERS_DISKSPACE
               SetFreeDiskDisplay(true);
+#else
+              cVideoDiskUsage::ForceCheck();
+#endif
               Display();
               if (!Count())
                  return osBack;
@@ -2959,7 +3023,6 @@ eOSState cMenuRecordings::ProcessKey(eKeys Key)
   if (!HasSubMenu()) {
      if (HadSubMenu)
 	Set(true);
-        // SetFreeDiskDisplay();
      if (!Count())
         return osBack;
      if (Key != kNone)
@@ -2975,6 +3038,9 @@ int cMenuMain::count = 0;
 cMenuMain::cMenuMain(const char *Title, eOSState State)
 :cOsdMenu(Title)
 {
+#if VDRVERSNUM >= 10728
+  SetMenuCategory(mcPlugin);
+#endif
   count++;
   SetHasHotkeys();
   Add(new cOsdItem(hk(tr("Schedule")),   osUser1));

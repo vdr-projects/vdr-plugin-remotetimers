@@ -43,6 +43,7 @@ cRemoteTimersSetup::cRemoteTimersSetup() {
 	replaceRecordings = 0;
 	serverIp[0] = 0;
 	serverPort = 0;
+	useChannelId = 1;
 	swapOkBlue = 0;
 	showProgressBar = 0;
 	userFilterSchedule = 0;
@@ -64,6 +65,7 @@ cRemoteTimersSetup& cRemoteTimersSetup::operator=(const cRemoteTimersSetup &Setu
 	replaceRecordings = Setup.replaceRecordings;
 	strn0cpy(serverIp, Setup.serverIp, sizeof(serverIp));
 	serverPort = Setup.serverPort;
+	useChannelId = Setup.useChannelId;
 	swapOkBlue = Setup.swapOkBlue;
 	showProgressBar = Setup.showProgressBar;
 	userFilterSchedule = Setup.userFilterSchedule;
@@ -92,6 +94,8 @@ bool cRemoteTimersSetup::Parse(const char *Name, const char *Value) {
 		strn0cpy(serverIp, Value, sizeof(serverIp));
 	else if (!strcasecmp(Name, "ServerPort"))
 		serverPort = atoi(Value);
+	else if (!strcasecmp(Name, "UseChannelId"))
+		useChannelId = atoi(Value);
 	else if (!strcasecmp(Name, "SwapOkBlue"))
 		swapOkBlue = atoi(Value);
 	else if (!strcasecmp(Name, "ShowProgressBar"))
@@ -128,6 +132,7 @@ void cRemoteTimersMenuSetup::Store() {
 	SetupStore("ReplaceRecordings", setupTmp.replaceRecordings);
 	SetupStore("ServerIp", setupTmp.serverIp);
 	SetupStore("ServerPort", setupTmp.serverPort);
+	SetupStore("UseChannelId", setupTmp.useChannelId);
 	SetupStore("SwapOkBlue", setupTmp.swapOkBlue);
 	SetupStore("ShowProgressBar", setupTmp.showProgressBar);
 	SetupStore("UserFilterSchedule", setupTmp.userFilterSchedule);
@@ -167,6 +172,7 @@ void cRemoteTimersMenuSetup::Set() {
 	Clear();
 	Add(new cMenuEditStrItem(trREMOTETIMERS("Server IP"), setupTmp.serverIp, sizeof(setupTmp.serverIp), ".1234567890"));
 	Add(new cMenuEditIntItem(trREMOTETIMERS("Server port"), &setupTmp.serverPort, 0, 65535, trREMOTETIMERS("from svdrpservice")));
+	Add(new cMenuEditBoolItem(trREMOTETIMERS("Map channels using"), &setupTmp.useChannelId, trREMOTETIMERS("channel number"), trREMOTETIMERS("channel ID")));
 	Add(new cMenuEditBoolItem(trREMOTETIMERS("Hide mainmenu entry"), &setupTmp.hideMainMenuEntry));
 #ifdef MAINMENUHOOKSVERSNUM
 	Add(new cMenuEditBoolItem(cString::sprintf(trREMOTETIMERS("Replace mainmenu \"%s\""), tr("Schedule")), &setupTmp.replaceSchedule));

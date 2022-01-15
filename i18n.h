@@ -22,6 +22,7 @@
 #ifndef _REMOTETIMERS_I18N__H
 #define _REMOTETIMERS_I18N__H
 
+#include <vdr/config.h>
 #include <vdr/i18n.h>
 
 #if VDRVERSNUM < 10507
