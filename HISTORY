@@ -1,6 +1,15 @@
 VDR Plugin 'remotetimers' Revision History
 ------------------------------------------
 
+2011-04-18: Version 0.1.5
+
+- Always update help keys when changing user filter in recordings menu
+- Fixed wrong help keys in recordings menu when user filter is active
+- The "red" key to open a recordings directory didn't work
+- No longer using cRecordingInfo::Read(FILE) in VDR 1.7.3+. It's going to
+  be a private member in VDR 1.7.18
+- Added Slovak translation (thanks to Milan Hrala)
+
 2011-03-01: Version 0.1.4
 
 - Improved German translations

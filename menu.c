@@ -2271,13 +2271,23 @@ eOSState cMenuEditRecording::Info(void)
 #define INFOFILE_TS "info"
 bool cMenuEditRecording::ModifyInfo(cRecording *Recording, const char *Info)
 {
-  // check for write access as cRecording::WriteInfo() always returns true
-  // TODO: writing may still fail as access() doesn't use the effective UID
 #if VDRVERSNUM >= 10703
   cString InfoFileName = cString::sprintf(Recording->IsPesRecording() ? "%s/" INFOFILE_PES : "%s/" INFOFILE_TS, Recording->FileName());
+  FILE *f = fopen(InfoFileName, "a");
+  if (f) {
+     fprintf(f, "%s\n", Info);
+     fclose(f);
+     // Casting const away is nasty, but what the heck?
+     // The Recordings thread is locked and the object is going to be deleted anyway.
+     if (((cRecordingInfo *)Recording->Info())->Read() && Recording->WriteInfo())
+        return true;
+     esyslog("remotetimers: Failed to update '%s'", *InfoFileName);
+  }
+  else
+     esyslog("remotetimers: writing to '%s' failed: %m", *InfoFileName);
 #else
   cString InfoFileName = cString::sprintf("%s/" INFOFILE_PES, Recording->FileName());
-#endif
+  // check for write access as cRecording::WriteInfo() always returns true
   if (access(InfoFileName, W_OK) == 0) {
      FILE *f = fmemopen((void *) Info, strlen(Info) * sizeof(char), "r");
      if (f) {
@@ -2292,6 +2302,7 @@ bool cMenuEditRecording::ModifyInfo(cRecording *Recording, const char *Info)
      }
   else
      esyslog("remotetimers: '%s' not writeable: %m", *InfoFileName);
+#endif
   return false;
 }
 
@@ -2596,6 +2607,7 @@ bool cMenuRecordings::SetFreeDiskDisplay(bool Force)
   return false;
 }
 
+#define B_RELEASE 0x100
 void cMenuRecordings::SetHelpKeys(void)
 {
   cMenuRecordingItem *ri = (cMenuRecordingItem *)Get(Current());
@@ -2608,20 +2620,18 @@ void cMenuRecordings::SetHelpKeys(void)
         cRecording *recording = GetRecording(ri);
         if (recording && recording->Info()->Title())
            NewHelpKeys = 3;
-        }
         if (userFilter != 0 && ri->User() != 0 && ri->User() != USER_MASK(userFilter))
-	   NewHelpKeys += 2;
+	   NewHelpKeys |= B_RELEASE;
+        }
      }
   if (NewHelpKeys != helpKeys) {
      switch (NewHelpKeys) {
        case 0: SetHelp(NULL); break;
        case 1: SetHelp(tr("Button$Open")); break;
-       case 2:
-       case 3: //SetHelp(RecordingCommands.Count() ? tr("Commands") : tr("Button$Play"), tr("Button$Rewind"), tr("Button$Delete"), NewHelpKeys == 3 ? tr("Button$Info") : NULL);
-       case 4:
+       //case 2:
+       //case 3: SetHelp(RecordingCommands.Count() ? tr("Commands") : tr("Button$Play"), tr("Button$Rewind"), tr("Button$Delete"), NewHelpKeys == 3 ? tr("Button$Info") : NULL);
        // TRANSLATORS: Button displayed instead of "Delete" when there are other users who didn't watch the recording yet
-       case 5: SetHelp(tr("Button$Edit"), tr("Button$Rewind"), NewHelpKeys > 3 ? trREMOTETIMERS("Release") : tr("Button$Delete"), NewHelpKeys == 3 ? tr("Button$Info") : NULL);
-       default: ;
+       default: SetHelp(tr("Button$Edit"), tr("Button$Rewind"), (NewHelpKeys & B_RELEASE) ? trREMOTETIMERS("Release") : tr("Button$Delete"), (NewHelpKeys & ~B_RELEASE) == 3 ? tr("Button$Info") : NULL);
        }
      helpKeys = NewHelpKeys;
      }
@@ -2858,7 +2868,7 @@ eOSState cMenuRecordings::ProcessKey(eKeys Key)
        case kPlay:
        case kOk:     return Play();
        //case kRed:    return (helpKeys > 1 && RecordingCommands.Count()) ? Commands() : Play();
-       case kRed:    return Edit();
+       case kRed:    return (helpKeys > 1) ? Edit() : Play();
        case kGreen:  return Rewind();
        case kYellow: return Delete();
        case kInfo:
@@ -2871,6 +2881,7 @@ eOSState cMenuRecordings::ProcessKey(eKeys Key)
 			Recordings.ResetResume();
 			}
                      Set(true);
+                     SetHelpKeys();
                      return osContinue;
        case kNone:   if (Recordings.StateChanged(recordingsState))
                         Set(true);
